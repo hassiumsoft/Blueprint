@@ -7,6 +7,11 @@ public class Main : MonoBehaviour {
 	//public Camera c;
 	public Canvas title;
 
+	void Awake () {
+		//QualitySettings.vSyncCount = 0;
+		Application.targetFrameRate = 60;
+	}
+
 	void Start () {
 		showTitle (true);
 	}
