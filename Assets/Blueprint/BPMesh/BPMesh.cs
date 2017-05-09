@@ -16,12 +16,13 @@ public class BPMesh
 		mesh.RecalculateBounds ();
 		mesh.RecalculateNormals ();
 	}
-	
+
 	public static Mesh Subdivide_Half (Mesh mesh)
 	{
 		Mesh m = mesh_copy (mesh);
 
 		List<Vector3> newverts = new List<Vector3> (m.vertices);
+		List<Vector2> newuv = new List<Vector2> (m.uv);
 		List<int> newtris = new List<int> ();
 
 		for (int c = 0; c <= m.triangles.Length - 3; c += 3) {
@@ -29,9 +30,17 @@ public class BPMesh
 			int vn1 = m.triangles [c + 1];
 			int vn2 = m.triangles [c + 2];
 
+			Vector2 vu0 = m.uv [vn0];
+			Vector2 vu1 = m.uv [vn1];
+			Vector2 vu2 = m.uv [vn2];
+
 			newverts.Add ((m.vertices [vn0] + m.vertices [vn1]) / 2);
 			newverts.Add ((m.vertices [vn1] + m.vertices [vn2]) / 2);
 			newverts.Add ((m.vertices [vn2] + m.vertices [vn0]) / 2);
+
+			newuv.Add ((vu0 + vu1) / 2);
+			newuv.Add ((vu1 + vu2) / 2);
+			newuv.Add ((vu2 + vu0) / 2);
 
 			int _vn = newverts.Count - 3;
 
@@ -53,6 +62,7 @@ public class BPMesh
 		}
 
 		m.vertices = newverts.ToArray ();
+		m.uv = newuv.ToArray ();
 		m.triangles = newtris.ToArray ();
 
 		recalc (m);
@@ -75,5 +85,10 @@ public class BPMesh
 		Mesh m = mesh_copy (mesh);
 
 		return m;
+	}
+
+	public static Mesh[] VoronoiBreak (Mesh mesh) {
+		//ボロノイ図状に崩壊
+		return null;
 	}
 }
