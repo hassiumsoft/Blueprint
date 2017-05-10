@@ -70,8 +70,7 @@ public class BPMesh
 		return m;
 	}
 
-	/*Unityの制約により頂点の数は計算しやすくするために三角形*3となっているため、重複する頂点をまとめることはおすすめできない。
-	public static Mesh clear_doubles (Mesh mesh) {
+	public static Mesh Remove_Doubles (Mesh mesh) {
 		Mesh m = mesh_copy (mesh);
 
 		List<Vector3> verts = new List<Vector3> (m.vertices);
@@ -79,7 +78,7 @@ public class BPMesh
 
 		for (int b = 0; b < verts.Count; b++) {
 			for (int c = b + 1; c < verts.Count; c++) {
-				if (verts [b] == verts [c]) {
+				if (verts [b] == verts [c] && m.uv [b] == m.uv [c]) {
 					for (int d = 0; d < tris.Length; d++) {
 						if (tris [d] == c) {
 							tris [d] = b;
@@ -89,13 +88,13 @@ public class BPMesh
 			}
 		}
 
-		m.vertices = verts.ToArray ();
 		m.triangles = tris;
+		m.vertices = verts.ToArray ();
 
 		return m;
-	}*/
+	}
 
-	public static Vector3 getNormal (Mesh mesh, int v) {
+	/*public static Vector3 getNormal (Mesh mesh, int v) {
 		Vector3? a = null;
 		for (int b = 0; b < mesh.triangles.Length;) {
 			if (mesh.triangles [b] == v) {
@@ -119,7 +118,7 @@ public class BPMesh
 		return a == null ? Vector3.zero : (Vector3)a;
 	}
 
-	/*public static Vector3 getNormal (Mesh mesh, Vector3 v) {
+	public static Vector3 getNormal (Mesh mesh, Vector3 v) {
 		Vector3? a = null;
 		for (int b = 0; b < mesh.triangles.Length;) {
 			if (mesh.vertices [mesh.triangles [b]] == v) {
@@ -185,7 +184,7 @@ public class BPMesh
 	public static Mesh getBPFractalTerrain (int fineness, float height) {
 		Mesh mesh = getQuadTerrain ();
 		//Mesh mesh = getTriangleTerrain ();
-
+		
 		Vector3[] verts = mesh.vertices;
 
 		for (int a = 0; a < verts.Length; a++) {
@@ -196,7 +195,7 @@ public class BPMesh
 
 		for (int a = 0; a < fineness; a++) {
 			int b = mesh.vertices.Length;
-			mesh = BPMesh.Subdivide_Half (mesh);
+			mesh = BPMesh.Remove_Doubles (BPMesh.Subdivide_Half (mesh));
 
 			verts = mesh.vertices;
 			while (b < verts.Length) {
