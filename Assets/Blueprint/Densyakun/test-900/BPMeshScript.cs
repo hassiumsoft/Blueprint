@@ -2,7 +2,7 @@
 
 public class BPMeshScript : MonoBehaviour
 {
-    MeshFilter meshfilter;
+	MeshFilter meshfilter;
 
     void Start()
     {
@@ -17,13 +17,11 @@ public class BPMeshScript : MonoBehaviour
 	public void a () {
 		meshfilter = GetComponent<MeshFilter>();
 
-		//BPMesh mdmesh = new BPMesh(meshfilter.sharedMesh);
-		//mdmesh.a();
-		//meshfilter.sharedMesh = mdmesh.toMesh();
+		meshfilter.sharedMesh = BPMesh.getBPFractalTerrain (4, 0.5f);
 
-		meshfilter.sharedMesh = BPMesh.Subdivide_Half (meshfilter.sharedMesh);
+		GetComponent<MeshCollider> ().sharedMesh = meshfilter.sharedMesh;
 
-		Destroy(GetComponent<BoxCollider>());
-		gameObject.AddComponent<BoxCollider>();
+		//Destroy (GetComponent<BoxCollider> ());
+		//gameObject.AddComponent<BoxCollider> ();
 	}
 }
