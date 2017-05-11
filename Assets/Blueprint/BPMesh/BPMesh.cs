@@ -206,6 +206,8 @@ public class BPMesh
 			mesh.vertices = verts;
 		}
 
+		recalc (mesh);
+
 		return mesh;
 	}
 

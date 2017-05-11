@@ -1,22 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Main : MonoBehaviour {
+	public const string VERSION = "0.0.1alpha";
 	public const string KEY_FIRSTSTART = "FIRSTSTART";
 
+	//public static Main main;
 	private static bool firstStart = false;
 	public static bool isFirstStart {
 		get { return firstStart; }
 		private set { firstStart = value; }
 	}
-	public static DateTime[] firstStartTimes { get ; private set; }
+	public static DateTime[] firstStartTimes { get; private set; }
+	public static String ssdirpath { get; private set; }
 	
 	//public Camera c;
 	public Canvas title;
+	public Text title_version;
 	public Canvas mapSelect;
 
 	void Awake () {
+		//main = this;
+
 		//QualitySettings.vSyncCount = 0;
 		//Application.targetFrameRate = 60;
 
@@ -64,6 +73,8 @@ public class Main : MonoBehaviour {
 		}
 		a += " }";
 		print ("firstStartTimes: " + a);
+
+		ssdirpath = Path.Combine (Application.persistentDataPath, "screenshots");
 	}
 
 	void Start () {
@@ -71,6 +82,15 @@ public class Main : MonoBehaviour {
 	}
 
 	void Update () {
+		//ScreenShot
+		if (Input.GetKeyDown (KeyCode.F2)) {
+			Directory.CreateDirectory (ssdirpath);
+			string fileName = DateTime.Now.Ticks + ".png";
+			Application.CaptureScreenshot (Path.Combine (ssdirpath, fileName));
+			print ("ScreenShot: " + fileName);
+		}
+
+		//Close Window
 		if (Input.GetKeyDown (KeyCode.Escape)) {
 			clearWindow ();
 			/*if (title.enabled) {
@@ -89,6 +109,7 @@ public class Main : MonoBehaviour {
 
 	public void showTitle () {
 		clearCanvas ();
+		title_version.text = "Ver: " + VERSION;
 		title.enabled = true;
 	}
 
@@ -103,5 +124,10 @@ public class Main : MonoBehaviour {
 
 	public void clearWindow () {
 		mapSelect.enabled = false;
+	}
+
+	public void openSSDir () {
+		Directory.CreateDirectory (ssdirpath);
+		Process.Start (ssdirpath);
 	}
 }
