@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class Main : MonoBehaviour {
-	public const string VERSION = "0.0.1alpha";
+	public const string VERSION = "0.001alpha";
 	public const string KEY_FIRSTSTART = "FIRSTSTART";
 
 	//public static Main main;
