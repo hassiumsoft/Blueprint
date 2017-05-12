@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class BPMesh
-{
+public class BPMesh {
 	public static Mesh mesh_copy (Mesh mesh) {
 		Mesh m = new Mesh ();
 		m.vertices = mesh.vertices;
@@ -206,7 +205,7 @@ public class BPMesh
 			mesh.vertices = verts;
 		}
 
-		recalc (mesh);
+		//recalc (mesh);
 
 		return mesh;
 	}

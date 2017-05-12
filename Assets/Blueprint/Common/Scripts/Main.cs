@@ -23,11 +23,15 @@ public class Main : MonoBehaviour {
 	public Text title_version;
 	public Canvas mapSelect;
 
+	public static Map playingmap;
+
 	void Awake () {
 		//main = this;
 
 		//QualitySettings.vSyncCount = 0;
 		//Application.targetFrameRate = 60;
+
+		MapManager.init ();
 
 		//ゲーム起動日時の取得
 		string a = PlayerPrefs.GetString (KEY_FIRSTSTART);//変数aは使いまわしているので注意
