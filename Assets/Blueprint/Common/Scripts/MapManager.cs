@@ -87,13 +87,6 @@ public class MapManager {
 		return "";
 	}
 
-	//データ:
-	//ブロック: (empty), id, x, y or (empty), id, x, y, [metadata_keys], [metadata_values]
-	//バージョン: v, バージョン
-	//財布の金額: m, 金額
-	//マップの開始時間: st, 時間
-	//マップのプレイ時間: pt, 時間
-	//マップの時間: t, 時間
 	public static Map openMap(string mapname) {
 		string mapdir = Path.Combine(dir, mapname);
 		if (Directory.Exists(mapdir)) {

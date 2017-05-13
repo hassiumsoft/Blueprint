@@ -16,14 +16,19 @@ public class Main : MonoBehaviour {
 		private set { firstStart = value; }
 	}
 	public static DateTime[] firstStartTimes { get; private set; }
-	public static String ssdirpath { get; private set; }
-	
-	//public Camera c;
-	public Canvas title;
-	public Text title_version;
-	public Canvas mapSelect;
+	public static string ssdirpath { get; private set; }
 
-	public static Map playingmap;
+	public static string[] tips = new string[] { "メニューはEscキーで戻ることが出来ます", "ポーズメニューはEscキーで開きます", "F2でスクリーンショットを撮ることが出来ます", "保存したスクリーンショットは設定から見ることが出来ます" };
+	//TODO TIPSを自動更新
+
+	//public Camera c;
+	public GameObject title;
+	public Text title_version;
+	public Text title_tips;
+	public GameObject mapSelect;
+	public GameObject setting;
+	public Map playingmap;
+	int tipsindex = 0;
 
 	void Awake () {
 		//main = this;
@@ -101,6 +106,17 @@ public class Main : MonoBehaviour {
 				quit ();
 			}*/
 		}
+
+		/*if (tipsを表示しているか) {
+			if (tipstime < 10) {
+				tipstime += Time.deltaTime;
+			} else {
+				tipstime = 0;
+				if ((tipsindex += 1) >= tips.Length) {
+					tipsindex = 0;
+				}
+			}
+		}*/
 	}
 
 	public void quit () {
@@ -114,24 +130,39 @@ public class Main : MonoBehaviour {
 	public void showTitle () {
 		clearCanvas ();
 		title_version.text = "Ver: " + VERSION;
-		title.enabled = true;
+		title.SetActive (true);
+		changeTips ();
+		title_tips.text = "Tips: " + tips [tipsindex];
 	}
 
 	public void clearCanvas () {
-		title.enabled = false;
+		title.SetActive (false);
 	}
 
 	public void showMapSelectWindow () {
 		clearWindow ();
-		mapSelect.enabled = true;
+		mapSelect.SetActive (true);
+	}
+
+	public void showSettingWindow () {
+		clearWindow ();
+		setting.SetActive (true);
 	}
 
 	public void clearWindow () {
-		mapSelect.enabled = false;
+		mapSelect.SetActive (false);
+		setting.SetActive (false);
 	}
 
 	public void openSSDir () {
 		Directory.CreateDirectory (ssdirpath);
 		Process.Start (ssdirpath);
+	}
+
+	void changeTips () {
+		/*if ((tipsindex += 1) >= tips.Length) {
+			tipsindex = 0;
+		}*/
+		tipsindex = UnityEngine.Random.Range(0, tips.Length);
 	}
 }
