@@ -2,6 +2,7 @@
 using UnityEngine;
 
 public class BPMesh {
+	
 	public static Mesh mesh_copy (Mesh mesh) {
 		Mesh m = new Mesh ();
 		m.vertices = mesh.vertices;
@@ -157,18 +158,7 @@ public class BPMesh {
 		}
 	}
 
-	public static Mesh getQuadTerrain () {
-		Mesh mesh = new Mesh ();
-
-		mesh.vertices = new Vector3[]{ Vector3.zero, Vector3.forward, Vector3.right + Vector3.forward, Vector3.right };
-		mesh.uv = new Vector2[]{ Vector2.zero, Vector2.up, Vector2.right + Vector2.up, Vector2.right };
-		mesh.triangles = new int[]{ 0, 1, 2, 2, 3, 0 };
-		recalc (mesh);
-
-		return mesh;
-	}
-
-	public static Mesh getTriangleTerrain () {
+	public static Mesh getTriangleFlat () {
 		Mesh mesh = new Mesh ();
 
 		mesh.vertices = new Vector3[]{ Vector3.zero, Vector3.forward, Vector3.right };
@@ -179,11 +169,44 @@ public class BPMesh {
 		return mesh;
 	}
 
+	public static Mesh getQuadFlat () {
+		Mesh mesh = new Mesh ();
+
+		mesh.vertices = new Vector3[]{ Vector3.zero, Vector3.forward, Vector3.right + Vector3.forward, Vector3.right };
+		mesh.uv = new Vector2[]{ Vector2.zero, Vector2.up, Vector2.right + Vector2.up, Vector2.right };
+		mesh.triangles = new int[]{ 0, 1, 2, 2, 3, 0 };
+		recalc (mesh);
+
+		return mesh;
+	}
+
+	public static Mesh getQuadTerrain () {
+		Mesh mesh = new Mesh ();
+
+		mesh.vertices = new Vector3[] {
+			Vector3.zero,
+			Vector3.forward,
+			Vector3.right + Vector3.forward,
+			Vector3.right,
+			(Vector3.right + Vector3.forward) / 2
+		};
+		mesh.uv = new Vector2[] {
+			Vector2.zero,
+			Vector2.up,
+			Vector2.right + Vector2.up,
+			Vector2.right,
+			(Vector2.right + Vector2.up) / 2
+		};
+		mesh.triangles = new int[]{ 0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4 };
+		recalc (mesh);
+
+		return mesh;
+	}
+
 	//中点変位法を使用したフラクタル地形
 	public static Mesh getBPFractalTerrain (int fineness, float height) {
 		Mesh mesh = getQuadTerrain ();
-		//Mesh mesh = getTriangleTerrain ();
-		
+
 		Vector3[] verts = mesh.vertices;
 
 		for (int a = 0; a < verts.Length; a++) {
@@ -232,4 +255,6 @@ public class BPMesh {
 	}
 
 	//切り出し
+
+	//樹木を生成
 }
