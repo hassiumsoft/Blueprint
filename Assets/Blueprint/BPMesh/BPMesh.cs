@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BPMesh {
@@ -8,7 +9,9 @@ public class BPMesh {
 		m.vertices = mesh.vertices;
 		m.uv = mesh.uv;
 		m.triangles = mesh.triangles;
-		recalc (m);
+
+		//recalc (m);
+
 		return m;
 	}
 
@@ -65,7 +68,7 @@ public class BPMesh {
 		m.uv = newuv.ToArray ();
 		m.triangles = newtris.ToArray ();
 
-		recalc (m);
+		//recalc (m);
 
 		return m;
 	}
@@ -164,7 +167,8 @@ public class BPMesh {
 		mesh.vertices = new Vector3[]{ Vector3.zero, Vector3.forward, Vector3.right };
 		mesh.uv = new Vector2[]{ Vector2.zero, Vector2.up, Vector2.right };
 		mesh.triangles = new int[]{ 0, 1, 2 };
-		recalc (mesh);
+
+		//recalc (mesh);
 
 		return mesh;
 	}
@@ -175,7 +179,8 @@ public class BPMesh {
 		mesh.vertices = new Vector3[]{ Vector3.zero, Vector3.forward, Vector3.right + Vector3.forward, Vector3.right };
 		mesh.uv = new Vector2[]{ Vector2.zero, Vector2.up, Vector2.right + Vector2.up, Vector2.right };
 		mesh.triangles = new int[]{ 0, 1, 2, 2, 3, 0 };
-		recalc (mesh);
+
+		//recalc (mesh);
 
 		return mesh;
 	}
@@ -198,22 +203,35 @@ public class BPMesh {
 			(Vector2.right + Vector2.up) / 2
 		};
 		mesh.triangles = new int[]{ 0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4 };
-		recalc (mesh);
+
+		//recalc (mesh);
 
 		return mesh;
 	}
 
 	//中点変位法を使用したフラクタル地形
-	public static Mesh getBPFractalTerrain (int fineness, float height) {
+	public static IEnumerator getBPFractalTerrain (int fineness) {
+		yield return getBPFractalTerrain (fineness, new Vector3[0]);
+	}
+
+	//pointsに点群データを入れておくことで、X,Zが一致する点のYを点群データに合わせることが出来る。
+	public static IEnumerator getBPFractalTerrain (int fineness, Vector3[] points) {
 		Mesh mesh = getQuadTerrain ();
 
 		Vector3[] verts = mesh.vertices;
 
 		for (int a = 0; a < verts.Length; a++) {
-			verts [a].y = Random.Range (0f, height);
+			verts [a].y = Random.Range (0f, 1f);
+			for (int b = 0; b < points.Length; b++) {
+				if (verts [a].x == points [b].x && verts [a].z == points [b].z) {
+					verts [a].y = points [b].y;
+					break;
+				}
+			}
 		}
 
 		mesh.vertices = verts;
+		yield return null;
 
 		for (int a = 0; a < fineness; a++) {
 			int b = mesh.vertices.Length;
@@ -221,16 +239,41 @@ public class BPMesh {
 
 			verts = mesh.vertices;
 			while (b < verts.Length) {
-				float c = height / 2 / (a + 1);
-				setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-c, c));
+				/*TODO PhysXエラーが出る
+				bool c = true;
+				for (int e = 0; e < points.Length; e++) {
+					if (verts [a].x == points [e].x && verts [a].z == points [e].z) {
+						c = false;
+						setVert (verts, verts [b], points [e]);
+						break;
+					}
+				}
+				if (c) {
+					float d = 1f / Mathf.Pow (2, a + 1);
+					setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
+				}*/
+				float d = 1f / Mathf.Pow (2, a + 1);
+				setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
 				b++;
 			}
 			mesh.vertices = verts;
+			yield return null;
 		}
+		yield return mesh;
+	}
 
-		//recalc (mesh);
+	public static void move (ref Vector3[] verts, Vector3 move) {
+		for (int a = 0; a < verts.Length; a++) {
+			verts [a] += move;
+		}
+	}
 
-		return mesh;
+	public static void scale (ref Vector3[] verts, Vector3 scale) {
+		for (int a = 0; a < verts.Length; a++) {
+			verts [a].x = verts [a].x * scale.x;
+			verts [a].y = verts [a].y * scale.y;
+			verts [a].z = verts [a].z * scale.z;
+		}
 	}
 
 	public static Vector3 getIntersectionPoint (Mesh mesh) {
@@ -243,11 +286,11 @@ public class BPMesh {
 		return null;
 	}
 
-	public static Mesh Quad2Tri (Mesh mesh) {
+	/*public static Mesh Quad2Tri (Mesh mesh) {
 		Mesh m = mesh_copy (mesh);
 
 		return m;
-	}
+	}*/
 
 	public static Mesh[] VoronoiBreak (Mesh mesh) {
 		//ボロノイ図状に崩壊
@@ -256,5 +299,5 @@ public class BPMesh {
 
 	//切り出し
 
-	//樹木を生成
+	//樹木を生成->追加アセットを使用
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -22,7 +23,9 @@ public class Main : MonoBehaviour {
 	public static Map playingmap { get; private set; }
 
 	//public Camera c;
-	
+
+	public Material mat;
+
 	void Awake () {
 		//main = this;
 
@@ -119,7 +122,6 @@ public class Main : MonoBehaviour {
 			closeMap ();
 		}
 		BPCanvas.bpCanvas.titlePanel.show (false);
-		//TODO
 		playingmap = map;
 		print ("マップを開きました: " + map.mapname);
 	}
@@ -133,5 +135,29 @@ public class Main : MonoBehaviour {
 			}*/
 		}
 		playingmap = null;
+	}
+
+	public void a () {
+		StartCoroutine (b ());
+	}
+
+	public IEnumerator b () {
+		if (playingmap != null) {
+			for (int x = 0; x < 2; x++) {
+				for (int y = 0; y < 2; y++) {
+					if (playingmap.getChunk (x, y) == -1) {
+						playingmap.chunks.Add (new Chunk (playingmap, x, y));
+						//yield return null;
+					}
+				}
+			}
+
+			for (int a = 0; a < playingmap.chunks.Count; a++) {
+				playingmap.chunks [a].mat = mat;
+				yield return StartCoroutine (playingmap.chunks [a].generate (this));
+			}
+
+			yield return StartCoroutine (MapManager.saveMapAsync (playingmap));
+		}
 	}
 }

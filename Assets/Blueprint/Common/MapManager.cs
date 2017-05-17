@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -7,9 +8,6 @@ using UnityEngine;
 public class MapManager {
 	public const string mapfilename = "map.bin";
 	public static string dir; //マップファイルを格納するフォルダ
-
-	//TODO (Mapも参照)
-	//public static string[] enablemapvers = new string[] { "0.1" } //使用可能なマップのバージョン
 
 	public static string[] randommapnames = new string[] {"green city", "new bridge", "blue forest", "thousand leaf",
 		"stone river", "fortune island", "mountain hand", "northeast",
@@ -50,25 +48,6 @@ public class MapManager {
 		return maplist.ToArray ();
 	}
 
-	/*public static bool createNewMap (string mapname) {
-		reloadDir ();
-		if (Directory.Exists (Path.Combine (dir, mapname))) {
-			return false;
-		}
-		//saveMap (new Map (Map.latestver, mapname));
-		saveMap (new Map (mapname));
-		return true;
-	}
-	
-	public static bool isEnableMapVer (string mapver) {
-		for (int a = 0; a < enablemapvers.Length; a++) {
-			if (enablemapvers [a].Equals (mapver)) {
-				return true;
-			}
-		}
-		return false;
-	}*/
-
 	public static string getRandomMapName () {
 		/*if (randommapnames.Length == 0) {
 			return "";
@@ -104,6 +83,19 @@ public class MapManager {
 	}
 
 	public static void saveMap (Map map) {
+		Debug.Log ("マップ\"" + map.mapname + "\"をセーブ中...");
+		aaa (map);
+		Debug.Log ("マップをセーブしました");
+	}
+
+	public static IEnumerator saveMapAsync (Map map) {
+		Debug.Log ("マップ\"" + map.mapname + "\"をセーブ中...");
+		yield return null;
+		aaa (map);
+		Debug.Log ("マップをセーブしました");
+	}
+
+	public static void aaa (Map map) {
 		reloadDir ();
 		string mapdir = Path.Combine (dir, map.mapname);
 		Directory.CreateDirectory (mapdir);
@@ -111,7 +103,6 @@ public class MapManager {
 		Stream stream = new FileStream (Path.Combine (mapdir, mapfilename), FileMode.Create, FileAccess.Write, FileShare.None);
 		formatter.Serialize (stream, map);
 		stream.Close ();
-		Debug.Log ("マップをセーブしました: " + map.mapname);
 	}
 
 	public static bool deleteMap (string mapname) {
@@ -139,102 +130,4 @@ public class MapManager {
 		}
 		return false;
 	}
-
-	/*TODO 使う可能性もあるが、今のところは一般的な数字で表示させる。
-	public static string getMoneyString(long money) {
-		if (money == 0) {
-			return "0円";
-		}
-		char[] a = money.ToString().ToCharArray();
-		string str = money <= 10000 * 10000 ? "<color=red>" : "<color=white>";
-		int b = a.Length;
-		while (4 < b) {
-			b -= 4;
-		}
-		bool c = false;
-		bool d = false;
-		for (int e = 0; e < a.Length; e++) {
-			if (a[e].Equals('1')) {
-				if (1 < a.Length && a.Length < 5) {
-					str += "一";
-					c = true;
-					d = true;
-				}
-			} else if (a[e].Equals('2')) {
-				str += "二";
-				c = true;
-				d = true;
-			} else if (a[e].Equals('3')) {
-				str += "三";
-				c = true;
-				d = true;
-			} else if (a[e].Equals('4')) {
-				str += "四";
-				c = true;
-				d = true;
-			} else if (a[e].Equals('5')) {
-				str += "五";
-				c = true;
-				d = true;
-			} else if (a[e].Equals('6')) {
-				str += "六";
-				c = true;
-				d = true;
-			} else if (a[e].Equals('7')) {
-				str += "七";
-				c = true;
-				d = true;
-			} else if (a[e].Equals('8')) {
-				str += "八";
-				c = true;
-				d = true;
-			} else if (a[e].Equals('9')) {
-				str += "九";
-				c = true;
-				d = true;
-			}
-			if (c) {
-				if (b == 2) {
-					str += "十";
-					c = false;
-				} else if (b == 3) {
-					str += "百";
-					c = false;
-				} else if (b == 4) {
-					str += "千";
-					c = false;
-				}
-			}
-			if (d) {
-				if (e == a.Length - 5) {
-					str += "万";
-					b = 5;
-					c = false;
-					d = false;
-				} else if (e == a.Length - 9) {
-					str += "億";
-					b = 5;
-					c = false;
-					d = false;
-				} else if (e == a.Length - 13) {
-					str += "兆";
-					b = 5;
-					c = false;
-					d = false;
-				} else if (e == a.Length - 17) {
-					str += "京";
-					b = 5;
-					c = false;
-					d = false;
-				} else if (e == a.Length - 21) {
-					str += "垓";
-					b = 5;
-					c = false;
-					d = false;
-				}
-			}
-			b--;
-		}
-		return str + "円</color>";
-	}*/
 }

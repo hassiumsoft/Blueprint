@@ -33,6 +33,7 @@ public class AddMapPanel : MonoBehaviour {
 				}
 			}
 
+			//TODO マップ追加を非同期に対応させる
 			MapManager.saveMap (new Map (mapname));
 			selectMapPanel.reloadContents ();
 			show (false);
