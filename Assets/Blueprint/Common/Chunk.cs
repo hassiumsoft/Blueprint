@@ -54,7 +54,7 @@ public class Chunk {
 							}
 							Vector3[] verts2 = verts1.ToArray ();
 							BPMesh.scale (ref verts2, Vector3.one / size);
-							BPMesh.move (ref verts2, Vector3.right * (map.chunks [a].x - x) + Vector3.forward * (map.chunks [a].y - y));
+							BPMesh.move (ref verts2, Vector3.right * (x - x2) + Vector3.forward * (y - y2));
 							points.AddRange (verts2);
 						}
 					}

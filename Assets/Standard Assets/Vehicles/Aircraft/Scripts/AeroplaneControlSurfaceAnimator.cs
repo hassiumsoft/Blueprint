@@ -1,21 +1,23 @@
+using System;
 using UnityEngine;
 
-namespace UnitySampleAssets.Vehicles.Aeroplane
+namespace UnityStandardAssets.Vehicles.Aeroplane
 {
     public class AeroplaneControlSurfaceAnimator : MonoBehaviour
     {
-        [SerializeField] private float smoothing = 5f; // The smoothing applied to the movement of control surfaces.
-        [SerializeField] private ControlSurface[] controlSurfaces; // Collection of control surfaces.
+        [SerializeField] private float m_Smoothing = 5f; // The smoothing applied to the movement of control surfaces.
+        [SerializeField] private ControlSurface[] m_ControlSurfaces; // Collection of control surfaces.
 
-        private AeroplaneController plane; // Reference to the aeroplane controller.
+        private AeroplaneController m_Plane; // Reference to the aeroplane controller.
+
 
         private void Start()
         {
             // Get the reference to the aeroplane controller.
-            plane = GetComponent<AeroplaneController>();
+            m_Plane = GetComponent<AeroplaneController>();
 
             // Store the original local rotation of each surface, so we can rotate relative to this
-            foreach (var surface in controlSurfaces)
+            foreach (var surface in m_ControlSurfaces)
             {
                 surface.originalLocalRotation = surface.transform.localRotation;
             }
@@ -24,28 +26,28 @@ namespace UnitySampleAssets.Vehicles.Aeroplane
 
         private void Update()
         {
-            foreach (var surface in controlSurfaces)
+            foreach (var surface in m_ControlSurfaces)
             {
                 switch (surface.type)
                 {
                     case ControlSurface.Type.Aileron:
                         {
                             // Ailerons rotate around the x axis, according to the plane's roll input
-                            Quaternion rotation = Quaternion.Euler(surface.amount*plane.RollInput, 0f, 0f);
+                            Quaternion rotation = Quaternion.Euler(surface.amount*m_Plane.RollInput, 0f, 0f);
                             RotateSurface(surface, rotation);
                             break;
                         }
                     case ControlSurface.Type.Elevator:
                         {
                             // Elevators rotate negatively around the x axis, according to the plane's pitch input
-                            Quaternion rotation = Quaternion.Euler(surface.amount*-plane.PitchInput, 0f, 0f);
+                            Quaternion rotation = Quaternion.Euler(surface.amount*-m_Plane.PitchInput, 0f, 0f);
                             RotateSurface(surface, rotation);
                             break;
                         }
                     case ControlSurface.Type.Rudder:
                         {
                             // Rudders rotate around their y axis, according to the plane's yaw input
-                            Quaternion rotation = Quaternion.Euler(0f, surface.amount*plane.YawInput, 0f);
+                            Quaternion rotation = Quaternion.Euler(0f, surface.amount*m_Plane.YawInput, 0f);
                             RotateSurface(surface, rotation);
                             break;
                         }
@@ -53,7 +55,7 @@ namespace UnitySampleAssets.Vehicles.Aeroplane
                         {
                             // Ruddervators are a combination of rudder and elevator, and rotate
                             // around their z axis by a combination of the yaw and pitch input
-                            float r = plane.YawInput + plane.PitchInput;
+                            float r = m_Plane.YawInput + m_Plane.PitchInput;
                             Quaternion rotation = Quaternion.Euler(0f, 0f, surface.amount*r);
                             RotateSurface(surface, rotation);
                             break;
@@ -61,7 +63,7 @@ namespace UnitySampleAssets.Vehicles.Aeroplane
                     case ControlSurface.Type.RuddervatorNegative:
                         {
                             // ... and because ruddervators are "special", we need a negative version too. >_<
-                            float r = plane.YawInput - plane.PitchInput;
+                            float r = m_Plane.YawInput - m_Plane.PitchInput;
                             Quaternion rotation = Quaternion.Euler(0f, 0f, surface.amount*r);
                             RotateSurface(surface, rotation);
                             break;
@@ -78,13 +80,13 @@ namespace UnitySampleAssets.Vehicles.Aeroplane
 
             // Slerp the surface's rotation towards the target rotation.
             surface.transform.localRotation = Quaternion.Slerp(surface.transform.localRotation, target,
-                                                               smoothing*Time.deltaTime);
+                                                               m_Smoothing*Time.deltaTime);
         }
 
 
         // This class presents a nice custom structure in which to define each of the plane's contol surfaces to animate.
         // They show up in the inspector as an array.
-        [System.Serializable]
+        [Serializable]
         public class ControlSurface // Control surfaces represent the different flaps of the aeroplane.
         {
             public enum Type // Flaps differ in position and rotation and are represented by different types.
@@ -92,8 +94,8 @@ namespace UnitySampleAssets.Vehicles.Aeroplane
                 Aileron, // Horizontal flaps on the wings, rotate on the x axis.
                 Elevator, // Horizontal flaps used to adjusting the pitch of a plane, rotate on the x axis.
                 Rudder, // Vertical flaps on the tail, rotate on the y axis.
-                RuddervatorNegative, // Combination of rudder and elevator. 
-                RuddervatorPositive, // Combination of rudder and elevator. 
+                RuddervatorNegative, // Combination of rudder and elevator.
+                RuddervatorPositive, // Combination of rudder and elevator.
             }
 
             public Transform transform; // The transform of the control surface.
@@ -104,4 +106,3 @@ namespace UnitySampleAssets.Vehicles.Aeroplane
         }
     }
 }
-

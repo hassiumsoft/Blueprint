@@ -1,26 +1,31 @@
-﻿using UnityEngine;
-using UnitySampleAssets.CrossPlatformInput;
+using System;
+using UnityEngine;
+using UnityStandardAssets.CrossPlatformInput;
 
-namespace UnitySampleAssets._2D
+namespace UnityStandardAssets._2D
 {
-
     [RequireComponent(typeof (PlatformerCharacter2D))]
     public class Platformer2DUserControl : MonoBehaviour
     {
-        private PlatformerCharacter2D character;
-        private bool jump;
+        private PlatformerCharacter2D m_Character;
+        private bool m_Jump;
+
 
         private void Awake()
         {
-            character = GetComponent<PlatformerCharacter2D>();
+            m_Character = GetComponent<PlatformerCharacter2D>();
         }
+
 
         private void Update()
         {
-            if(!jump)
-            // Read the jump input in Update so button presses aren't missed.
-            jump = CrossPlatformInputManager.GetButtonDown("Jump");
+            if (!m_Jump)
+            {
+                // Read the jump input in Update so button presses aren't missed.
+                m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
+            }
         }
+
 
         private void FixedUpdate()
         {
@@ -28,8 +33,8 @@ namespace UnitySampleAssets._2D
             bool crouch = Input.GetKey(KeyCode.LeftControl);
             float h = CrossPlatformInputManager.GetAxis("Horizontal");
             // Pass all parameters to the character control script.
-            character.Move(h, crouch, jump);
-            jump = false;
+            m_Character.Move(h, crouch, m_Jump);
+            m_Jump = false;
         }
     }
 }
