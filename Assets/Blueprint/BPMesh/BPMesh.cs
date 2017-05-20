@@ -10,12 +10,10 @@ public class BPMesh {
 		m.uv = mesh.uv;
 		m.triangles = mesh.triangles;
 
-		//recalc (m);
-
 		return m;
 	}
 
-	public static void recalc (Mesh mesh) {
+	public static void recalc (ref Mesh mesh) {
 		mesh.RecalculateBounds ();
 		mesh.RecalculateNormals ();
 	}
@@ -67,8 +65,6 @@ public class BPMesh {
 		m.vertices = newverts.ToArray ();
 		m.uv = newuv.ToArray ();
 		m.triangles = newtris.ToArray ();
-
-		//recalc (m);
 
 		return m;
 	}
@@ -145,7 +141,7 @@ public class BPMesh {
 		return a == null ? Vector3.zero : (Vector3)a;
 	}*/
 
-	public static void setVert(Vector3[] verts, Vector3 target, Vector3 result) {
+	public static void setVert(ref Vector3[] verts, Vector3 target, Vector3 result) {
 		for (int a = 0; a < verts.Length; a++) {
 			if (verts [a] == target) {
 				verts [a] = result;
@@ -153,7 +149,7 @@ public class BPMesh {
 		}
 	}
 
-	public static void setVert(List<Vector3> verts, Vector3 target, Vector3 result) {
+	public static void setVert(ref List<Vector3> verts, Vector3 target, Vector3 result) {
 		for (int a = 0; a < verts.Count; a++) {
 			if (verts [a] == target) {
 				verts [a] = result;
@@ -168,8 +164,6 @@ public class BPMesh {
 		mesh.uv = new Vector2[]{ Vector2.zero, Vector2.up, Vector2.right };
 		mesh.triangles = new int[]{ 0, 1, 2 };
 
-		//recalc (mesh);
-
 		return mesh;
 	}
 
@@ -179,8 +173,6 @@ public class BPMesh {
 		mesh.vertices = new Vector3[]{ Vector3.zero, Vector3.forward, Vector3.right + Vector3.forward, Vector3.right };
 		mesh.uv = new Vector2[]{ Vector2.zero, Vector2.up, Vector2.right + Vector2.up, Vector2.right };
 		mesh.triangles = new int[]{ 0, 1, 2, 2, 3, 0 };
-
-		//recalc (mesh);
 
 		return mesh;
 	}
@@ -204,8 +196,6 @@ public class BPMesh {
 		};
 		mesh.triangles = new int[]{ 0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4 };
 
-		//recalc (mesh);
-
 		return mesh;
 	}
 
@@ -215,6 +205,7 @@ public class BPMesh {
 	}
 
 	//pointsに点群データを入れておくことで、X,Zが一致する点のYを点群データに合わせることが出来る。
+	//チャンクに対応した地形を生成する際に使用する。
 	public static IEnumerator getBPFractalTerrain (int fineness, Vector3[] points) {
 		Mesh mesh = getQuadTerrain ();
 
@@ -224,61 +215,60 @@ public class BPMesh {
 			verts [a].y = Random.Range (0f, 1f);
 			for (int b = 0; b < points.Length; b++) {
 				if (verts [a].x == points [b].x && verts [a].z == points [b].z) {
-					verts [a].y = points [b].y;
+					verts [a] = points [b];
 					break;
 				}
 			}
 		}
 
 		mesh.vertices = verts;
-		yield return null;
 
 		for (int a = 0; a < fineness; a++) {
 			int b = mesh.vertices.Length;
+
 			mesh = BPMesh.Remove_Doubles (BPMesh.Subdivide_Half (mesh));
 
 			verts = mesh.vertices;
 			while (b < verts.Length) {
-				/*TODO PhysXエラーが出る
 				bool c = true;
+
 				for (int e = 0; e < points.Length; e++) {
-					if (verts [a].x == points [e].x && verts [a].z == points [e].z) {
+					if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
 						c = false;
-						setVert (verts, verts [b], points [e]);
+						setVert (ref verts, verts [b], points [e]);
 						break;
 					}
 				}
+
 				if (c) {
 					float d = 1f / Mathf.Pow (2, a + 1);
-					setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
-				}*/
-				float d = 1f / Mathf.Pow (2, a + 1);
-				setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
+					setVert (ref verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
+				}
+
+				//ゲームプレイに影響を与えない程度にマップ生成を優先する
+				if (1 <= Time.deltaTime * Application.targetFrameRate) {
+					yield return null;
+				}
+
 				b++;
 			}
 			mesh.vertices = verts;
+
 			yield return null;
 		}
-		yield return mesh;
-	}
 
-	public static void move (ref Vector3[] verts, Vector3 move) {
-		for (int a = 0; a < verts.Length; a++) {
-			verts [a] += move;
-		}
+		yield return mesh;
 	}
 
 	public static void scale (ref Vector3[] verts, Vector3 scale) {
 		for (int a = 0; a < verts.Length; a++) {
-			verts [a].x = verts [a].x * scale.x;
-			verts [a].y = verts [a].y * scale.y;
-			verts [a].z = verts [a].z * scale.z;
+			verts [a] = new Vector3 (verts [a].x * scale.x, verts [a].y * scale.y, verts [a].z * scale.z);
 		}
 	}
 
-	public static Vector3 getIntersectionPoint (Mesh mesh) {
+	/*public static Vector3 getIntersectionPoint (Mesh mesh) {
 
-		return Vector3.zero;//TODO
+		return Vector3.zero;
 	}
 
 	public static Mesh Combine (Mesh mesh1, Mesh mesh2) {
@@ -286,7 +276,7 @@ public class BPMesh {
 		return null;
 	}
 
-	/*public static Mesh Quad2Tri (Mesh mesh) {
+	public static Mesh Quad2Tri (Mesh mesh) {
 		Mesh m = mesh_copy (mesh);
 
 		return m;

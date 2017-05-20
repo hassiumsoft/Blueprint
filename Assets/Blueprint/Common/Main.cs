@@ -11,7 +11,6 @@ public class Main : MonoBehaviour {
 	public const string KEY_FIRSTSTART = "FIRSTSTART";
 	public const string KEY_SETUPPED = "SETUPPED";
 
-	//public static Main main;
 	private static bool firstStart = false;
 	public static bool isFirstStart {
 		get { return firstStart; }
@@ -27,10 +26,8 @@ public class Main : MonoBehaviour {
 	public Material mat;
 
 	void Awake () {
-		//main = this;
-
-		//QualitySettings.vSyncCount = 0;
-		//Application.targetFrameRate = 60;
+		//QualitySettings.vSyncCount = 0;//初期値は1
+		Application.targetFrameRate = 60;//初期値は-1
 
 		//ゲーム起動日時の取得
 		string a = PlayerPrefs.GetString (KEY_FIRSTSTART);//変数aは使いまわしているので注意
@@ -143,17 +140,18 @@ public class Main : MonoBehaviour {
 
 	public IEnumerator b () {
 		if (playingmap != null) {
-			for (int x = 0; x < 2; x++) {
-				for (int y = 0; y < 2; y++) {
+			for (int x = -2; x < 2; x++) {
+				for (int y = -2; y < 2; y++) {
 					if (playingmap.getChunk (x, y) == -1) {
 						playingmap.chunks.Add (new Chunk (playingmap, x, y));
-						//yield return null;
 					}
 				}
 			}
 
 			for (int a = 0; a < playingmap.chunks.Count; a++) {
+				//TODO 一時的
 				playingmap.chunks [a].mat = mat;
+
 				yield return StartCoroutine (playingmap.chunks [a].generate (this));
 			}
 

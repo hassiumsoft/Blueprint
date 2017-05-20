@@ -75,12 +75,17 @@ public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
 	public void OKButton () {
 		selectedMap = sc.n == -1 ? null : mapList [sc.n];
 		sc.n = -1;
+		a ();
 
 		if (openMap) {
-			Main.openMap (MapManager.loadMap (SelectMapPanel.selectedMap));
+			Map map = MapManager.loadMap (SelectMapPanel.selectedMap);
+			if (map == null) {
+				//TODO マップが対応していない場合のダイアログを表示
+			} else {
+				Main.openMap (map);
+				show (false);
+			}
 		}
-
-		show (false);
 	}
 
 	public void Delete () {

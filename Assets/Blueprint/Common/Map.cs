@@ -25,7 +25,7 @@ public class Map {
 
 	public int getChunk (int x, int y) {
 		for (int n = 0; n < chunks.Count; n++) {
-			if (chunks [n].x == x && chunks [n].y == y) {
+			if (chunks [n].x == x && chunks [n].z == y) {
 				return n;
 			}
 		}

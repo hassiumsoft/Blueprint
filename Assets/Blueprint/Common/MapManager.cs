@@ -71,11 +71,13 @@ public class MapManager {
 			if (datpath != null) {
 				IFormatter formatter = new BinaryFormatter ();
 				Stream stream = new FileStream (Path.Combine (mapdir, mapfilename), FileMode.Open, FileAccess.Read, FileShare.Read);
-				Map map = (Map)formatter.Deserialize (stream);
+				Map map = null;
+				try {
+					map = (Map)formatter.Deserialize (stream);
+				} catch (EndOfStreamException) {
+					Debug.LogError ("マップが対応していません: " + mapfilename);
+				}
 				stream.Close ();
-				/*if (isEnableMapVer(map.ver)) {
-					return map;
-				}*/
 				return map;
 			}
 		}
