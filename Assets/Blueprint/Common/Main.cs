@@ -11,6 +11,7 @@ public class Main : MonoBehaviour {
 	public const string KEY_FIRSTSTART = "FIRSTSTART";
 	public const string KEY_SETUPPED = "SETUPPED";
 
+	public static Main main;
 	private static bool firstStart = false;
 	public static bool isFirstStart {
 		get { return firstStart; }
@@ -23,9 +24,13 @@ public class Main : MonoBehaviour {
 
 	//public Camera c;
 
+	//TODO 一時的
 	public Material mat;
+	public GameObject playerPrefab;
 
 	void Awake () {
+		Main.main = this;
+
 		//QualitySettings.vSyncCount = 0;//初期値は1
 		Application.targetFrameRate = 60;//初期値は-1
 
@@ -114,13 +119,30 @@ public class Main : MonoBehaviour {
 		Process.Start (ssdir);
 	}
 
-	public static void openMap (Map map) {
+	public static IEnumerator openMap (string mapname) {
 		if (playingmap != null) {
 			closeMap ();
 		}
 		BPCanvas.bpCanvas.titlePanel.show (false);
-		playingmap = map;
-		print ("マップを開きました: " + map.mapname);
+		BPCanvas.bpCanvas.loadingMapPanel.show (true);
+
+		//一回だとフレーム等のズレによってTipsが表示されない
+		yield return null;
+		yield return null;
+
+		Map map = MapManager.loadMap (mapname);
+		BPCanvas.bpCanvas.loadingMapPanel.show (false);
+		yield return null;
+		if (map == null) {
+			//TODO マップが対応していない場合のダイアログを表示
+
+			BPCanvas.bpCanvas.titlePanel.show (true);
+			BPCanvas.bpCanvas.selectMapPanel.setOpenMap ();
+			BPCanvas.bpCanvas.selectMapPanel.show (true);
+		} else {
+			playingmap = map;
+			print ("マップを開きました: " + map.mapname);
+		}
 	}
 
 	public static void closeMap () {
@@ -154,6 +176,16 @@ public class Main : MonoBehaviour {
 
 				yield return StartCoroutine (playingmap.chunks [a].generate (this));
 			}
+
+			int pid = playingmap.getPlayer ("master");//TODO 仮
+			Player player;
+			if (pid == -1) {
+				playingmap.players.Add (player = new Player (playingmap, "master"));
+			} else {
+				player = playingmap.players [pid];
+			}
+			player.playerPrefab = playerPrefab;
+			yield return StartCoroutine (player.generate (this));
 
 			yield return StartCoroutine (MapManager.saveMapAsync (playingmap));
 		}

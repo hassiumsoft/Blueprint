@@ -84,6 +84,16 @@ public class MapManager {
 		return null;
 	}
 
+	public static void aaa (Map map) {
+		reloadDir ();
+		string mapdir = Path.Combine (dir, map.mapname);
+		Directory.CreateDirectory (mapdir);
+		IFormatter formatter = new BinaryFormatter ();
+		Stream stream = new FileStream (Path.Combine (mapdir, mapfilename), FileMode.Create, FileAccess.Write, FileShare.None);
+		formatter.Serialize (stream, map);
+		stream.Close ();
+	}
+
 	public static void saveMap (Map map) {
 		Debug.Log ("マップ\"" + map.mapname + "\"をセーブ中...");
 		aaa (map);
@@ -95,16 +105,6 @@ public class MapManager {
 		yield return null;
 		aaa (map);
 		Debug.Log ("マップをセーブしました");
-	}
-
-	public static void aaa (Map map) {
-		reloadDir ();
-		string mapdir = Path.Combine (dir, map.mapname);
-		Directory.CreateDirectory (mapdir);
-		IFormatter formatter = new BinaryFormatter ();
-		Stream stream = new FileStream (Path.Combine (mapdir, mapfilename), FileMode.Create, FileAccess.Write, FileShare.None);
-		formatter.Serialize (stream, map);
-		stream.Close ();
 	}
 
 	public static bool deleteMap (string mapname) {

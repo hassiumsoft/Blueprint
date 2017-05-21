@@ -78,13 +78,8 @@ public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
 		a ();
 
 		if (openMap) {
-			Map map = MapManager.loadMap (SelectMapPanel.selectedMap);
-			if (map == null) {
-				//TODO マップが対応していない場合のダイアログを表示
-			} else {
-				Main.openMap (map);
-				show (false);
-			}
+			show (false);
+			Main.main.StartCoroutine (Main.openMap (SelectMapPanel.selectedMap));
 		}
 	}
 

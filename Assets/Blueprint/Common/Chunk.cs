@@ -1,22 +1,26 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 [Serializable]
-public class Chunk {
-	public const int size = 1024; //チャンクサイズ
-	[NonSerialized]
+public class Chunk : ISerializable {
+	public const string KEY_X = "X";
+	public const string KEY_Z = "Z";
+	public const string KEY_MESH = "MESH";
+	public const int size = 4096; //チャンクサイズ
+	public const int height = 1024; //高低差の基準値（基準値よりズレが生じる場合がある）
+	public const int fineness = 5;
+
 	public Material mat;
-	[NonSerialized]
 	public GameObject obj;
 
-	public Map map { get; }
+	public Map map;
 	public int x { get; }
 	public int z { get; }
-	public SerializableMesh sMesh;
-	[NonSerialized]
 	public Mesh mesh;
+
 	//public SerializableMaterial sMat;
 
 	public Chunk (Map map, int x, int z) {
@@ -25,22 +29,37 @@ public class Chunk {
 		this.z = z;
 	}
 
+	protected Chunk (SerializationInfo info, StreamingContext context) {
+		if (info == null)
+			throw new ArgumentNullException ("info");
+		x = info.GetInt32 (KEY_X);
+		z = info.GetInt32 (KEY_Z);
+		SerializableMesh sMesh = ((SerializableMesh)info.GetValue (KEY_MESH, typeof(SerializableMesh)));
+		if (sMesh != null) {
+			mesh = sMesh.toMesh ();
+		}
+	}
+
+	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
+		if (info == null)
+			throw new ArgumentNullException ("info");
+		info.AddValue (KEY_X, x);
+		info.AddValue (KEY_Z, z);
+		info.AddValue (KEY_MESH, mesh == null ? null : new SerializableMesh (mesh));
+	}
+
 	public IEnumerator generate (MonoBehaviour behaviour) {
 		if (obj == null) {
 			obj = new GameObject ();
 			obj.AddComponent<MeshFilter> ();
 			obj.AddComponent<MeshRenderer> ();
-			obj.AddComponent<MeshCollider> ();
+			obj.AddComponent<MeshCollider> ().convex = true;
 
 			obj.transform.position = new Vector3 (x * size, 0, z * size);
 		}
 
 		obj.GetComponent<MeshRenderer> ().material = mat;
 		yield return null;
-
-		if (sMesh != null) {
-			mesh = sMesh.toMesh ();
-		}
 
 		if (mesh == null) {
 			List<Vector3> points = new List<Vector3> ();
@@ -60,7 +79,7 @@ public class Chunk {
 									}
 								}
 								Vector3[] verts2 = verts1.ToArray ();
-								BPMesh.scale (ref verts2, Vector3.one / size);
+								BPMesh.scale (verts2, Vector3.one / size);
 								for (int c = 0; c < verts2.Length; c++) {
 									verts2 [c] += Vector3.right * (x2 - x) + Vector3.forward * (z2 - z);
 								}
@@ -71,18 +90,16 @@ public class Chunk {
 				}
 			}
 
-			IEnumerator routine = BPMesh.getBPFractalTerrain (4, points.ToArray ());
+			IEnumerator routine = BPMesh.getBPFractalTerrain (fineness, points.ToArray ());
 			yield return behaviour.StartCoroutine (routine);
 			if (routine.Current is Mesh) {
 				mesh = (Mesh)routine.Current;
 
 				Vector3[] verts3 = mesh.vertices;
-				BPMesh.scale (ref verts3, Vector3.one * size);
+				BPMesh.scale (verts3, Vector3.right * size + Vector3.up * height + Vector3.forward * size);
 				mesh.vertices = verts3;
 
-				BPMesh.recalc (ref mesh);
-
-				sMesh = new SerializableMesh (mesh);
+				BPMesh.recalc (mesh);
 			}
 			yield return null;
 		}

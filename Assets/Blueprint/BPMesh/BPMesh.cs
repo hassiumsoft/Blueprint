@@ -13,7 +13,7 @@ public class BPMesh {
 		return m;
 	}
 
-	public static void recalc (ref Mesh mesh) {
+	public static void recalc (Mesh mesh) {
 		mesh.RecalculateBounds ();
 		mesh.RecalculateNormals ();
 	}
@@ -141,7 +141,7 @@ public class BPMesh {
 		return a == null ? Vector3.zero : (Vector3)a;
 	}*/
 
-	public static void setVert(ref Vector3[] verts, Vector3 target, Vector3 result) {
+	public static void setVert(Vector3[] verts, Vector3 target, Vector3 result) {
 		for (int a = 0; a < verts.Length; a++) {
 			if (verts [a] == target) {
 				verts [a] = result;
@@ -149,7 +149,7 @@ public class BPMesh {
 		}
 	}
 
-	public static void setVert(ref List<Vector3> verts, Vector3 target, Vector3 result) {
+	public static void setVert(List<Vector3> verts, Vector3 target, Vector3 result) {
 		for (int a = 0; a < verts.Count; a++) {
 			if (verts [a] == target) {
 				verts [a] = result;
@@ -235,14 +235,14 @@ public class BPMesh {
 				for (int e = 0; e < points.Length; e++) {
 					if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
 						c = false;
-						setVert (ref verts, verts [b], points [e]);
+						setVert (verts, verts [b], points [e]);
 						break;
 					}
 				}
 
 				if (c) {
 					float d = 1f / Mathf.Pow (2, a + 1);
-					setVert (ref verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
+					setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
 				}
 
 				//ゲームプレイに影響を与えない程度にマップ生成を優先する
@@ -260,7 +260,7 @@ public class BPMesh {
 		yield return mesh;
 	}
 
-	public static void scale (ref Vector3[] verts, Vector3 scale) {
+	public static void scale (Vector3[] verts, Vector3 scale) {
 		for (int a = 0; a < verts.Length; a++) {
 			verts [a] = new Vector3 (verts [a].x * scale.x, verts [a].y * scale.y, verts [a].z * scale.z);
 		}
