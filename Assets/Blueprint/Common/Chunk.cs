@@ -9,9 +9,9 @@ public class Chunk : ISerializable {
 	public const string KEY_X = "X";
 	public const string KEY_Z = "Z";
 	public const string KEY_MESH = "MESH";
-	public const int size = 4096; //チャンクサイズ
-	public const int height = 1024; //高低差の基準値（基準値よりズレが生じる場合がある）
-	public const int fineness = 5;
+	public const int size = 1024;//256 //チャンクサイズ（変更してはいけない）
+	public const int height = 512; //高低差の基準値（基準値よりズレが生じる場合がある）
+	public const int fineness = 1;
 
 	public Material mat;
 	public GameObject obj;
@@ -79,9 +79,8 @@ public class Chunk : ISerializable {
 									}
 								}
 								Vector3[] verts2 = verts1.ToArray ();
-								BPMesh.scale (verts2, Vector3.one / size);
 								for (int c = 0; c < verts2.Length; c++) {
-									verts2 [c] += Vector3.right * (x2 - x) + Vector3.forward * (z2 - z);
+									verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
 								}
 								points.AddRange (verts2);
 							}
@@ -90,18 +89,12 @@ public class Chunk : ISerializable {
 				}
 			}
 
-			IEnumerator routine = BPMesh.getBPFractalTerrain (fineness, points.ToArray ());
+			IEnumerator routine = BPMesh.getBPFractalTerrain (fineness, size, height, points.ToArray ());
 			yield return behaviour.StartCoroutine (routine);
 			if (routine.Current is Mesh) {
 				mesh = (Mesh)routine.Current;
-
-				Vector3[] verts3 = mesh.vertices;
-				BPMesh.scale (verts3, Vector3.right * size + Vector3.up * height + Vector3.forward * size);
-				mesh.vertices = verts3;
-
-				BPMesh.recalc (mesh);
+				yield return null;
 			}
-			yield return null;
 		}
 
 		MeshFilter meshfilter = obj.GetComponent<MeshFilter> ();

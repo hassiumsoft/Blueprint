@@ -4,6 +4,7 @@ using UnityEngine;
 [Serializable]
 public class SerializableMesh {
 	public Matrix4x4[] bindposes;
+	//TODO BlendShape
 	public BoneWeight[] boneWeights;
 	//public Bounds bounds;
 	public Color[] colors;

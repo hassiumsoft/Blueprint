@@ -99,10 +99,7 @@ public class Main : MonoBehaviour {
 	void Update () {
 		//ScreenShot
 		if (Input.GetKeyDown (KeyCode.F2)) {
-			Directory.CreateDirectory (ssdir);
-			string fileName = DateTime.Now.Ticks + ".png";
-			Application.CaptureScreenshot (Path.Combine (ssdir, fileName));
-			print ("ScreenShot: " + fileName);
+			StartCoroutine (screenShot ());
 		}
 	}
 
@@ -112,6 +109,14 @@ public class Main : MonoBehaviour {
 		#elif !UNITY_WEBPLAYER
 		Application.Quit ();
 		#endif
+	}
+
+	public IEnumerator screenShot () {
+		yield return null;
+		Directory.CreateDirectory (ssdir);
+		string fileName = DateTime.Now.Ticks + ".png";
+		Application.CaptureScreenshot (Path.Combine (ssdir, fileName));
+		print ("ScreenShot: " + fileName);
 	}
 
 	public void openSSDir () {

@@ -13,53 +13,97 @@ public class BPMesh {
 		return m;
 	}
 
-	public static void recalc (Mesh mesh) {
-		mesh.RecalculateBounds ();
-		mesh.RecalculateNormals ();
-	}
+	//TODO フラット面とスムーズ面を判別して細分化
 
-	public static Mesh Subdivide_Half (Mesh mesh)
-	{
+	//メッシュの細分化
+	public static Mesh Subdivide_Half (Mesh mesh, bool smooth) {
 		Mesh m = mesh_copy (mesh);
 
 		List<Vector3> newverts = new List<Vector3> (m.vertices);
 		List<Vector2> newuv = new List<Vector2> (m.uv);
 		List<int> newtris = new List<int> ();
 
-		for (int c = 0; c <= m.triangles.Length - 3; c += 3) {
-			int vn0 = m.triangles [c];
-			int vn1 = m.triangles [c + 1];
-			int vn2 = m.triangles [c + 2];
+		if (smooth) {
+			for (int c = 0; c <= m.triangles.Length - 3; c += 3) {
+				int vn0 = m.triangles [c];
+				int vn1 = m.triangles [c + 1];
+				int vn2 = m.triangles [c + 2];
 
-			Vector2 vu0 = m.uv [vn0];
-			Vector2 vu1 = m.uv [vn1];
-			Vector2 vu2 = m.uv [vn2];
+				newverts.Add ((m.vertices [vn0] + m.vertices [vn1]) / 2);
+				newverts.Add ((m.vertices [vn1] + m.vertices [vn2]) / 2);
+				newverts.Add ((m.vertices [vn2] + m.vertices [vn0]) / 2);
 
-			newverts.Add ((m.vertices [vn0] + m.vertices [vn1]) / 2);
-			newverts.Add ((m.vertices [vn1] + m.vertices [vn2]) / 2);
-			newverts.Add ((m.vertices [vn2] + m.vertices [vn0]) / 2);
+				newuv.Add ((m.uv [vn0] + m.uv [vn1]) / 2);
+				newuv.Add ((m.uv [vn1] + m.uv [vn2]) / 2);
+				newuv.Add ((m.uv [vn2] + m.uv [vn0]) / 2);
 
-			newuv.Add ((vu0 + vu1) / 2);
-			newuv.Add ((vu1 + vu2) / 2);
-			newuv.Add ((vu2 + vu0) / 2);
+				int _vn = newverts.Count - 3;
 
-			int _vn = newverts.Count - 3;
+				newtris.Add (vn0);
+				newtris.Add (_vn);
+				newtris.Add (_vn + 2);
 
-			newtris.Add (vn0);
-			newtris.Add (_vn);
-			newtris.Add (_vn + 2);
+				newtris.Add (vn1);
+				newtris.Add (_vn + 1);
+				newtris.Add (_vn);
 
-			newtris.Add (vn1);
-			newtris.Add (_vn + 1);
-			newtris.Add (_vn);
+				newtris.Add (vn2);
+				newtris.Add (_vn + 2);
+				newtris.Add (_vn + 1);
 
-			newtris.Add (vn2);
-			newtris.Add (_vn + 2);
-			newtris.Add (_vn + 1);
+				newtris.Add (_vn);
+				newtris.Add (_vn + 1);
+				newtris.Add (_vn + 2);
+			}
+		} else {
+			for (int c = 0; c <= m.triangles.Length - 3; c += 3) {
+				int vn0 = m.triangles [c];
+				int vn1 = m.triangles [c + 1];
+				int vn2 = m.triangles [c + 2];
 
-			newtris.Add (_vn);
-			newtris.Add (_vn + 1);
-			newtris.Add (_vn + 2);
+				Vector2 v0 = (m.vertices [vn0] + m.vertices [vn1]) / 2;
+				Vector2 v1 = (m.vertices [vn1] + m.vertices [vn2]) / 2;
+				Vector2 v2 = (m.vertices [vn2] + m.vertices [vn0]) / 2;
+
+				newverts.Add (v0);
+				newverts.Add (v1);
+				newverts.Add (v2);
+				newverts.Add (v0);
+				newverts.Add (v1);
+				newverts.Add (v2);
+				newverts.Add (v0);
+				newverts.Add (v1);
+				newverts.Add (v2);
+
+				Vector2 vu0 = (m.uv [vn0] + m.uv [vn1]) / 2;
+				Vector2 vu1 = (m.uv [vn1] + m.uv [vn2]) / 2;
+				Vector2 vu2 = (m.uv [vn2] + m.uv [vn0]) / 2;
+
+				newuv.Add (vu0);
+				newuv.Add (vu1);
+				newuv.Add (vu2);
+				newuv.Add (vu0);
+				newuv.Add (vu1);
+				newuv.Add (vu2);
+				newuv.Add (vu0);
+				newuv.Add (vu1);
+				newuv.Add (vu2);
+
+				int _vn = newverts.Count - 9;
+
+				newtris.Add (vn0);
+				newtris.Add (_vn);
+				newtris.Add (_vn + 2);
+				newtris.Add (vn1);
+				newtris.Add (_vn + 1);
+				newtris.Add (_vn + 3);
+				newtris.Add (vn2);
+				newtris.Add (_vn + 5);
+				newtris.Add (_vn + 4);
+				newtris.Add (_vn + 6);
+				newtris.Add (_vn + 7);
+				newtris.Add (_vn + 8);
+			}
 		}
 
 		m.vertices = newverts.ToArray ();
@@ -69,6 +113,7 @@ public class BPMesh {
 		return m;
 	}
 
+	//頂点及びUVが一致する頂点をまとめる。スムーズ面になってしまうためおすすめはしない。
 	public static Mesh Remove_Doubles (Mesh mesh) {
 		Mesh m = mesh_copy (mesh);
 
@@ -170,9 +215,24 @@ public class BPMesh {
 	public static Mesh getQuadFlat () {
 		Mesh mesh = new Mesh ();
 
-		mesh.vertices = new Vector3[]{ Vector3.zero, Vector3.forward, Vector3.right + Vector3.forward, Vector3.right };
-		mesh.uv = new Vector2[]{ Vector2.zero, Vector2.up, Vector2.right + Vector2.up, Vector2.right };
-		mesh.triangles = new int[]{ 0, 1, 2, 2, 3, 0 };
+		mesh.vertices = new Vector3[] {
+			Vector3.zero,
+			Vector3.forward,
+			Vector3.right + Vector3.forward,
+			Vector3.right + Vector3.forward,
+			Vector3.right,
+			Vector3.zero
+		};
+		mesh.uv = new Vector2[] {
+			Vector2.zero,
+			Vector2.up,
+			Vector2.right + Vector2.up,
+			Vector2.right,
+			Vector2.right + Vector2.up,
+			Vector2.right,
+			Vector2.zero
+		};
+		mesh.triangles = new int[]{ 0, 1, 2, 3, 4, 5 };
 
 		return mesh;
 	}
@@ -183,39 +243,57 @@ public class BPMesh {
 		mesh.vertices = new Vector3[] {
 			Vector3.zero,
 			Vector3.forward,
+			(Vector3.right + Vector3.forward) / 2,
+			Vector3.forward,
+			Vector3.right + Vector3.forward,
+			(Vector3.right + Vector3.forward) / 2,
 			Vector3.right + Vector3.forward,
 			Vector3.right,
+			(Vector3.right + Vector3.forward) / 2,
+			Vector3.right,
+			Vector3.zero,
 			(Vector3.right + Vector3.forward) / 2
 		};
 		mesh.uv = new Vector2[] {
 			Vector2.zero,
 			Vector2.up,
+			(Vector2.right + Vector2.up) / 2,
+			Vector2.up,
+			Vector2.right + Vector2.up,
+			(Vector2.right + Vector2.up) / 2,
 			Vector2.right + Vector2.up,
 			Vector2.right,
+			(Vector2.right + Vector2.up) / 2,
+			Vector2.right,
+			Vector2.zero,
 			(Vector2.right + Vector2.up) / 2
 		};
-		mesh.triangles = new int[]{ 0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4 };
+		mesh.triangles = new int[]{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
 		return mesh;
 	}
 
 	//中点変位法を使用したフラクタル地形
-	public static IEnumerator getBPFractalTerrain (int fineness) {
-		yield return getBPFractalTerrain (fineness, new Vector3[0]);
+	public static IEnumerator getBPFractalTerrain (int fineness, float size, float height) {
+		yield return getBPFractalTerrain (fineness, size, height, new Vector3[0]);
 	}
 
 	//pointsに点群データを入れておくことで、X,Zが一致する点のYを点群データに合わせることが出来る。
 	//チャンクに対応した地形を生成する際に使用する。
-	public static IEnumerator getBPFractalTerrain (int fineness, Vector3[] points) {
+	public static IEnumerator getBPFractalTerrain (int fineness, float size, float height, Vector3[] points) {
 		Mesh mesh = getQuadTerrain ();
 
 		Vector3[] verts = mesh.vertices;
 
+		scale (verts, size);
+
 		for (int a = 0; a < verts.Length; a++) {
-			verts [a].y = Random.Range (0f, 1f);
+			Vector3 v0 = verts [a];
+			v0.y = Random.Range (0f, height);
+			setVert (verts, verts [a], v0);
 			for (int b = 0; b < points.Length; b++) {
 				if (verts [a].x == points [b].x && verts [a].z == points [b].z) {
-					verts [a] = points [b];
+					setVert (verts, verts [a], points [b]);
 					break;
 				}
 			}
@@ -224,9 +302,10 @@ public class BPMesh {
 		mesh.vertices = verts;
 
 		for (int a = 0; a < fineness; a++) {
+			yield return null;
 			int b = mesh.vertices.Length;
 
-			mesh = BPMesh.Remove_Doubles (BPMesh.Subdivide_Half (mesh));
+			mesh = BPMesh.Subdivide_Half (mesh, false);
 
 			verts = mesh.vertices;
 			while (b < verts.Length) {
@@ -241,7 +320,7 @@ public class BPMesh {
 				}
 
 				if (c) {
-					float d = 1f / Mathf.Pow (2, a + 1);
+					float d = height / Mathf.Pow (2, a + 1);
 					setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
 				}
 
@@ -253,11 +332,15 @@ public class BPMesh {
 				b++;
 			}
 			mesh.vertices = verts;
-
-			yield return null;
 		}
-
+		mesh.RecalculateNormals ();
 		yield return mesh;
+	}
+
+	public static void scale (Vector3[] verts, float scale) {
+		for (int a = 0; a < verts.Length; a++) {
+			verts [a] *= scale;
+		}
 	}
 
 	public static void scale (Vector3[] verts, Vector3 scale) {
@@ -265,6 +348,9 @@ public class BPMesh {
 			verts [a] = new Vector3 (verts [a].x * scale.x, verts [a].y * scale.y, verts [a].z * scale.z);
 		}
 	}
+
+	//TODO フラット面化
+	//TODO スムーズ面化
 
 	/*public static Vector3 getIntersectionPoint (Mesh mesh) {
 

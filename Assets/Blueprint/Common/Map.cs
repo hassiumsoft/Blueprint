@@ -6,10 +6,12 @@ using UnityEngine;
 [Serializable]
 public class Map : ISerializable {
 	public const string KEY_MAPNAME = "MAPNAME";
+	public const string KEY_CREATED = "CREATED";
 	public const string KEY_CHUNKS = "CHUNKS";
 	public const string KEY_PLAYERS = "PLAYERS";
 
 	public string mapname { get; }
+	public DateTime created { get; }
 	public List<Chunk> chunks;
 	public List<Player> players;
 
@@ -20,7 +22,7 @@ public class Map : ISerializable {
 
 	public Map (string mapname) {
 		this.mapname = mapname;
-
+		created = DateTime.Now;
 		chunks = new List<Chunk> ();
 		players = new List<Player> ();
 	}
@@ -29,6 +31,7 @@ public class Map : ISerializable {
 		if (info == null)
 			throw new ArgumentNullException ("info");
 		mapname = info.GetString (KEY_MAPNAME);
+		created = new DateTime (info.GetInt64 (KEY_CREATED));
 		chunks = (List<Chunk>)info.GetValue (KEY_CHUNKS, typeof(List<Chunk>));
 		for (int a = 0; a < chunks.Count; a++) {
 			chunks [a].map = this;
@@ -43,6 +46,7 @@ public class Map : ISerializable {
 		if (info == null)
 			throw new ArgumentNullException ("info");
 		info.AddValue (KEY_MAPNAME, mapname);
+		info.AddValue (KEY_CREATED, created.Ticks);
 		info.AddValue (KEY_CHUNKS, chunks);
 		info.AddValue (KEY_PLAYERS, players);
 	}

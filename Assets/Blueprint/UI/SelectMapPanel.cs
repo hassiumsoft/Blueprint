@@ -10,6 +10,7 @@ public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
 	public Button deleteMapButton;
 	public Text selectButtonText;
 	public Text mapNameText;
+	public Text mapCreatedText;
 	public Image mapImage; //TODO 未使用
 	public ScrollController sc;
 	string[] mapList = new string[0];
@@ -56,6 +57,7 @@ public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
 		bool interactable = sc.n != -1;
 		deleteMapButton.interactable = selectMapButton.interactable = interactable;
 		mapNameText.text = interactable ? mapList [sc.n] : "";
+		//mapCreatedText.text = interactable ? mapList [sc.n] : "";
 	}
 
 	public void reloadContents () {
