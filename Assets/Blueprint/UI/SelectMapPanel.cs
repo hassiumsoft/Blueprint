@@ -10,7 +10,7 @@ public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
 	public Button deleteMapButton;
 	public Text selectButtonText;
 	public Text mapNameText;
-	public Text mapCreatedText;
+	public Text mapCreatedText; //TODO 未使用
 	public Image mapImage; //TODO 未使用
 	public ScrollController sc;
 	string[] mapList = new string[0];

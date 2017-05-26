@@ -11,6 +11,9 @@ public class Map : ISerializable {
 	public const string KEY_PLAYERS = "PLAYERS";
 
 	public string mapname { get; }
+
+	//TODO マップの作成日時を読み込むにはマップを読み込まなければいけないため、
+	//マップのチャンクやプレイヤーデータを除いた基本情報のみを読み込んだり出来るようにする。
 	public DateTime created { get; }
 	public List<Chunk> chunks;
 	public List<Player> players;
@@ -71,6 +74,22 @@ public class Map : ISerializable {
 
 	public Vector3 getPlayerSpawnPoint () {
 		//TODO
-		return new Vector3 (0, 1024, 0);
+
+		return new Vector3 (0, getTerrainHeight (0, 0), 0);
+	}
+
+	public float getHeight (float x, float z) {
+		RaycastHit hit;
+		if (Physics.Raycast (new Ray (new Vector3(x, int.MaxValue / 2, z), Vector3.down), out hit, int.MaxValue)) {
+			return hit.point.y;
+		}
+
+		return 0;
+	}
+
+	public float getTerrainHeight (float x, float z) {
+		//TODO 障害物に当たらず地形の標高を取得できるようにする
+
+		return getHeight (x, z);
 	}
 }

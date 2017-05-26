@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class BPMesh {
-	
+
+	//メッシュの複製
 	public static Mesh mesh_copy (Mesh mesh) {
 		Mesh m = new Mesh ();
 		m.vertices = mesh.vertices;
@@ -61,9 +62,9 @@ public class BPMesh {
 				int vn1 = m.triangles [c + 1];
 				int vn2 = m.triangles [c + 2];
 
-				Vector2 v0 = (m.vertices [vn0] + m.vertices [vn1]) / 2;
-				Vector2 v1 = (m.vertices [vn1] + m.vertices [vn2]) / 2;
-				Vector2 v2 = (m.vertices [vn2] + m.vertices [vn0]) / 2;
+				Vector3 v0 = (m.vertices [vn0] + m.vertices [vn1]) / 2;
+				Vector3 v1 = (m.vertices [vn1] + m.vertices [vn2]) / 2;
+				Vector3 v2 = (m.vertices [vn2] + m.vertices [vn0]) / 2;
 
 				newverts.Add (v0);
 				newverts.Add (v1);
@@ -186,6 +187,7 @@ public class BPMesh {
 		return a == null ? Vector3.zero : (Vector3)a;
 	}*/
 
+	//同一位置にある頂点を目的地に移動
 	public static void setVert(Vector3[] verts, Vector3 target, Vector3 result) {
 		for (int a = 0; a < verts.Length; a++) {
 			if (verts [a] == target) {
@@ -194,8 +196,30 @@ public class BPMesh {
 		}
 	}
 
+	public static IEnumerator setVertAsync(Vector3[] verts, Vector3 target, Vector3 result) {
+		for (int a = 0; a < verts.Length; a++) {
+			if (1 <= Time.deltaTime * Application.targetFrameRate) {
+				yield return null;
+			}
+			if (verts [a] == target) {
+				verts [a] = result;
+			}
+		}
+	}
+
 	public static void setVert(List<Vector3> verts, Vector3 target, Vector3 result) {
 		for (int a = 0; a < verts.Count; a++) {
+			if (verts [a] == target) {
+				verts [a] = result;
+			}
+		}
+	}
+
+	public static IEnumerator setVertAsync(List<Vector3> verts, Vector3 target, Vector3 result) {
+		for (int a = 0; a < verts.Count; a++) {
+			if (1 <= Time.deltaTime * Application.targetFrameRate) {
+				yield return null;
+			}
 			if (verts [a] == target) {
 				verts [a] = result;
 			}
@@ -212,6 +236,7 @@ public class BPMesh {
 		return mesh;
 	}
 
+	//XZ面の四角形。2つの三角面で構成されている
 	public static Mesh getQuadFlat () {
 		Mesh mesh = new Mesh ();
 
@@ -227,7 +252,6 @@ public class BPMesh {
 			Vector2.zero,
 			Vector2.up,
 			Vector2.right + Vector2.up,
-			Vector2.right,
 			Vector2.right + Vector2.up,
 			Vector2.right,
 			Vector2.zero
@@ -237,6 +261,7 @@ public class BPMesh {
 		return mesh;
 	}
 
+	//XZ面の地形用の四角形。四隅と中心に点を置き、それぞれを結んだ4つの三角面で構成されている
 	public static Mesh getQuadTerrain () {
 		Mesh mesh = new Mesh ();
 
@@ -274,13 +299,13 @@ public class BPMesh {
 	}
 
 	//中点変位法を使用したフラクタル地形
-	public static IEnumerator getBPFractalTerrain (int fineness, float size, float height) {
-		yield return getBPFractalTerrain (fineness, size, height, new Vector3[0]);
+	public static IEnumerator getBPFractalTerrain (MonoBehaviour behaviour, int fineness, float size, float height) {
+		yield return getBPFractalTerrain (behaviour, fineness, size, height, new Vector3[0]);
 	}
 
 	//pointsに点群データを入れておくことで、X,Zが一致する点のYを点群データに合わせることが出来る。
 	//チャンクに対応した地形を生成する際に使用する。
-	public static IEnumerator getBPFractalTerrain (int fineness, float size, float height, Vector3[] points) {
+	public static IEnumerator getBPFractalTerrain (MonoBehaviour behaviour, int fineness, float size, float height, Vector3[] points) {
 		Mesh mesh = getQuadTerrain ();
 
 		Vector3[] verts = mesh.vertices;
@@ -290,10 +315,19 @@ public class BPMesh {
 		for (int a = 0; a < verts.Length; a++) {
 			Vector3 v0 = verts [a];
 			v0.y = Random.Range (0f, height);
-			setVert (verts, verts [a], v0);
+			if (behaviour == null)
+				setVert (verts, verts [a], v0);
+			else
+				yield return behaviour.StartCoroutine (setVertAsync (verts, verts [a], v0));
 			for (int b = 0; b < points.Length; b++) {
+				if (1 <= Time.deltaTime * Application.targetFrameRate) {
+					yield return null;
+				}
 				if (verts [a].x == points [b].x && verts [a].z == points [b].z) {
-					setVert (verts, verts [a], points [b]);
+					if (behaviour == null)
+						setVert (verts, verts [a], points [b]);
+					else
+						yield return behaviour.StartCoroutine (setVertAsync (verts, verts [a], points [b]));
 					break;
 				}
 			}
@@ -309,24 +343,32 @@ public class BPMesh {
 
 			verts = mesh.vertices;
 			while (b < verts.Length) {
+				if (1 <= Time.deltaTime * Application.targetFrameRate) {
+					yield return null;
+				}
+
 				bool c = true;
 
 				for (int e = 0; e < points.Length; e++) {
+					if (1 <= Time.deltaTime * Application.targetFrameRate) {
+						yield return null;
+					}
 					if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
 						c = false;
-						setVert (verts, verts [b], points [e]);
+						if (behaviour == null)
+							setVert (verts, verts [b], points [e]);
+						else
+							yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], points [e]));
 						break;
 					}
 				}
 
 				if (c) {
 					float d = height / Mathf.Pow (2, a + 1);
-					setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
-				}
-
-				//ゲームプレイに影響を与えない程度にマップ生成を優先する
-				if (1 <= Time.deltaTime * Application.targetFrameRate) {
-					yield return null;
+					if (behaviour == null)
+						setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
+					else
+						yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d)));
 				}
 
 				b++;

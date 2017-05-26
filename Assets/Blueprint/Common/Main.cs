@@ -26,7 +26,7 @@ public class Main : MonoBehaviour {
 
 	//TODO 一時的
 	public Material mat;
-	public GameObject playerPrefab;
+	public PlayerObject playerPrefab;
 
 	void Awake () {
 		Main.main = this;
@@ -68,8 +68,8 @@ public class Main : MonoBehaviour {
 		PlayerPrefs.SetString (KEY_FIRSTSTART, "" + a);
 
 		//ゲーム起動日時及び、ゲーム初回起動情報をコンソールに出力
-		print ("firstStart: " + firstStart);
-		a = "{ ";
+		//print ("firstStart: " + firstStart);
+		/*a = "{ ";
 		for (int f = 0; f < firstStartTimes.Length; f++) {
 			if (f != 0) {
 				a += ", ";
@@ -77,13 +77,13 @@ public class Main : MonoBehaviour {
 			a += firstStartTimes [f].Year + "/" + firstStartTimes [f].Month + "/" + firstStartTimes [f].Day + "-" + firstStartTimes [f].Hour + ":" + firstStartTimes [f].Minute + ":" + firstStartTimes [f].Second;
 		}
 		a += " }";
-		print ("firstStartTimes: " + a);
+		print ("firstStartTimes: " + a);*/
 
 		ssdir = Path.Combine (Application.persistentDataPath, "screenshots");
 
 		//初期設定を行っているかどうか
 		isSetupped = PlayerPrefs.GetInt(KEY_SETUPPED, 0) == 1;
-		print ("isSetupped: " + isSetupped);
+		//print ("isSetupped: " + isSetupped);
 	}
 
 	void Start () {
@@ -116,7 +116,7 @@ public class Main : MonoBehaviour {
 		Directory.CreateDirectory (ssdir);
 		string fileName = DateTime.Now.Ticks + ".png";
 		Application.CaptureScreenshot (Path.Combine (ssdir, fileName));
-		print ("ScreenShot: " + fileName);
+		print (DateTime.Now + " ScreenShot: " + fileName);
 	}
 
 	public void openSSDir () {
@@ -146,7 +146,7 @@ public class Main : MonoBehaviour {
 			BPCanvas.bpCanvas.selectMapPanel.show (true);
 		} else {
 			playingmap = map;
-			print ("マップを開きました: " + map.mapname);
+			print (DateTime.Now + " マップを開きました: " + map.mapname);
 		}
 	}
 
@@ -181,6 +181,8 @@ public class Main : MonoBehaviour {
 
 				yield return StartCoroutine (playingmap.chunks [a].generate (this));
 			}
+
+			//TODO プレイヤーの生成に時間がかかる
 
 			int pid = playingmap.getPlayer ("master");//TODO 仮
 			Player player;

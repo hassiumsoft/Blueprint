@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
@@ -53,7 +54,7 @@ public class MapManager {
 			return "";
 		}*/
 		//マップが存在するかどうか確認する場合は無限ループを避けるためwhileを使っていはいけない。
-		return randommapnames [Random.Range (0, randommapnames.Length)];
+		return randommapnames [UnityEngine.Random.Range (0, randommapnames.Length)];
 	}
 
 	public static Map loadMap (string mapname) {
@@ -75,7 +76,7 @@ public class MapManager {
 				try {
 					map = (Map)formatter.Deserialize (stream);
 				} catch (EndOfStreamException) {
-					Debug.LogError ("マップが対応していません: " + mapfilename);
+					Debug.LogError (DateTime.Now + " マップが対応していません: " + mapfilename);
 				}
 				stream.Close ();
 				return map;
@@ -95,16 +96,16 @@ public class MapManager {
 	}
 
 	public static void saveMap (Map map) {
-		Debug.Log ("マップ\"" + map.mapname + "\"をセーブ中...");
+		Debug.Log (DateTime.Now + " マップ\"" + map.mapname + "\"をセーブ中...");
 		aaa (map);
-		Debug.Log ("マップをセーブしました");
+		Debug.Log (DateTime.Now + " マップをセーブしました");
 	}
 
 	public static IEnumerator saveMapAsync (Map map) {
-		Debug.Log ("マップ\"" + map.mapname + "\"をセーブ中...");
+		Debug.Log (DateTime.Now + " マップ\"" + map.mapname + "\"をセーブ中...");
 		yield return null;
 		aaa (map);
-		Debug.Log ("マップをセーブしました");
+		Debug.Log (DateTime.Now + " マップをセーブしました");
 	}
 
 	public static bool deleteMap (string mapname) {
@@ -126,7 +127,7 @@ public class MapManager {
 				} catch (IOException) {
 					//フォルダの中身がある場合はフォルダを削除できない。
 				}
-				Debug.Log ("マップを削除しました: " + mapname);
+				Debug.Log (DateTime.Now + " マップを削除しました: " + mapname);
 				return true;
 			}
 		}

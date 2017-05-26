@@ -8,8 +8,8 @@ public class Player : ISerializable {
 	public const string KEY_NAME = "NAME";
 	public const string KEY_POS = "POS";
 
-	public GameObject playerPrefab;
-	public GameObject obj;
+	public PlayerObject playerPrefab;
+	public PlayerObject obj;
 
 	public string name;
 	public Map map;
@@ -19,7 +19,8 @@ public class Player : ISerializable {
 		this.map = map;
 		this.name = name;
 
-		pos = map.getPlayerSpawnPoint ();
+		pos = new Vector3 ();
+		respawn ();
 	}
 
 	protected Player (SerializationInfo info, StreamingContext context) {
@@ -41,10 +42,19 @@ public class Player : ISerializable {
 
 	public IEnumerator generate (MonoBehaviour behaviour) {
 		if (obj == null) {
-			obj = GameObject.Instantiate (playerPrefab);
+			yield return null;//TODO 仮
+
+			(obj = GameObject.Instantiate (playerPrefab)).init (this);
 
 			obj.transform.position = pos;
 		}
-		yield return null;//TODO 仮
+	}
+
+	public void respawn () {
+		pos = map.getPlayerSpawnPoint ();
+		if (obj != null) {
+			obj.transform.position = pos;
+		}
+		Debug.Log (DateTime.Now + " プレイヤー\"" + name + "\"がリスポーン: " + pos);
 	}
 }
