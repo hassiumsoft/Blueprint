@@ -166,6 +166,14 @@ public class Main : MonoBehaviour {
 	}
 
 	public IEnumerator b () {
+		GameObject test = new GameObject ();
+		Mesh test_m = BPMesh.getCylinder (1, 3, 3);
+		test_m.RecalculateBounds ();
+		test_m.RecalculateNormals ();
+		test.AddComponent<MeshFilter> ().sharedMesh = test_m;
+		test.AddComponent<MeshRenderer> ();
+		test.AddComponent<MeshCollider> ();
+
 		if (playingmap != null) {
 			for (int x = -2; x < 2; x++) {
 				for (int y = -2; y < 2; y++) {

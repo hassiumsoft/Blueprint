@@ -236,7 +236,7 @@ public class BPMesh {
 		return mesh;
 	}
 
-	//XZ面の四角形。2つの三角面で構成されている
+	//XZ面の四角形を作成。2つの三角面で構成されている
 	public static Mesh getQuadFlat () {
 		Mesh mesh = new Mesh ();
 
@@ -261,7 +261,7 @@ public class BPMesh {
 		return mesh;
 	}
 
-	//XZ面の地形用の四角形。四隅と中心に点を置き、それぞれを結んだ4つの三角面で構成されている
+	//XZ面の地形用の四角形を作成。四隅と中心に点を置き、それぞれを結んだ4つの三角面で構成されている
 	public static Mesh getQuadTerrain () {
 		Mesh mesh = new Mesh ();
 
@@ -410,12 +410,81 @@ public class BPMesh {
 		return m;
 	}*/
 
+	//円柱を作成
+	public static Mesh getCylinder (float radius, float height, int verts) {
+		Mesh mesh = new Mesh ();
+
+		Vector3[] vs = new Vector3[verts * 12];
+		Vector2[] uv = new Vector2[verts * 12];
+		int[] tris = new int[verts * 12];
+
+		for (int a = 0; a < verts; a++) {
+			float x1 = Mathf.Cos (Mathf.PI * 2 / verts * a) * radius;
+			float z1 = Mathf.Sin (Mathf.PI * 2 / verts * a) * radius;
+			float x2 = Mathf.Cos (Mathf.PI * 2 / verts * (a + 1)) * radius;
+			float z2 = Mathf.Sin (Mathf.PI * 2 / verts * (a + 1)) * radius;
+			vs [a] = new Vector3 (0, 0, 0);
+			vs [verts + a] = new Vector3 (x1, 0, z1);
+			vs [verts * 2 + a] = new Vector3 (x2, 0, z2);
+			vs [verts * 3 + a] = new Vector3 (x1, 0, z1);
+			vs [verts * 4 + a] = new Vector3 (x1, height, z1);
+			vs [verts * 5 + a] = new Vector3 (x2, height, z2);
+			vs [verts * 6 + a] = new Vector3 (x1, 0, z1);
+			vs [verts * 7 + a] = new Vector3 (x2, height, z2);
+			vs [verts * 8 + a] = new Vector3 (x2, 0, z2);
+			vs [verts * 9 + a] = new Vector3 (x1, height, z1);
+			vs [verts * 10 + a] = new Vector3 (0, height, 0);
+			vs [verts * 11 + a] = new Vector3 (x2, height, z2);
+
+			uv [a] = new Vector2 (0, 0);
+			uv [verts + a] = new Vector2 ();//TODO
+			uv [verts * 2 + a] = new Vector2 ();
+			uv [verts * 3 + a] = new Vector2 ();
+			uv [verts * 4 + a] = new Vector2 ();
+			uv [verts * 5 + a] = new Vector2 ();
+			uv [verts * 6 + a] = new Vector2 ();
+			uv [verts * 7 + a] = new Vector2 ();
+			uv [verts * 8 + a] = new Vector2 ();
+			uv [verts * 9 + a] = new Vector2 ();
+			uv [verts * 10 + a] = new Vector2 (0, 0);
+			uv [verts * 11 + a] = new Vector2 ();
+
+			tris [a * 12] = a;
+			tris [a * 12 + 1] = verts + a;
+			tris [a * 12 + 2] = verts * 2 + a;
+
+			tris [a * 12 + 3] = verts * 3 + a;
+			tris [a * 12 + 4] = verts * 4 + a;
+			tris [a * 12 + 5] = verts * 5 + a;
+
+			tris [a * 12 + 6] = verts * 6 + a;
+			tris [a * 12 + 7] = verts * 7 + a;
+			tris [a * 12 + 8] = verts * 8 + a;
+
+			tris [a * 12 + 9] = verts * 9 + a;
+			tris [a * 12 + 10] = verts * 10 + a;
+			tris [a * 12 + 11] = verts * 11 + a;
+		}
+
+		mesh.vertices = vs;
+		mesh.uv = uv;
+		mesh.triangles = tris;
+
+		return mesh;
+	}
+
+	//TODO 円錐を作成
+	/*public static Mesh getCone () {
+
+	}*/
+
+	//TODO 切り出し
+
+	//TODO 樹木を生成
+
 	public static Mesh[] VoronoiBreak (Mesh mesh) {
 		//ボロノイ図状に崩壊
 		return null;
 	}
 
-	//切り出し
-
-	//樹木を生成->追加アセットを使用
 }

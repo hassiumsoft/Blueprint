@@ -10,22 +10,25 @@ public class Chunk : ISerializable {
 	public const string KEY_Z = "Z";
 	public const string KEY_MESH = "MESH";
 	//最大チャンク数: -16777216~16777215 ( -2^(32-1)/128 ~ 2^(32-1)/128-1 )
-	//チャンクの頂点数: 768 (4*4^3*3 = 4*4^fineness*3)
+	//チャンクの頂点数: 3072 (4*4^4*3 = 4*4^fineness*3)
 	public const int size = 128; //チャンクサイズ（変更してはいけない）
 
-	//高低差の基準値（基準値よりズレが生じる場合がある）
-	//TODO 0.2fにしたらColliderの作成エラーが発生 [Physics.PhysX] ConvexHullBuilder::CreateTrianglesFromPolygons: convex hull has a polygon with less than 3 vertices!
-	//public const float height = 8;
+	//TODO スペックに応じて荒い地形から細かい地形まで自動的に調整されるようにする。設定でも変更可能にする
 
+	//高低差の基準値（基準値よりズレが生じる場合がある。変更可能）
+	//TODO 0.2fにしたらColliderの作成エラーが発生 [Physics.PhysX] ConvexHullBuilder::CreateTrianglesFromPolygons: convex hull has a polygon with less than 3 vertices!
+	public const float height = 8;
+
+	//フラクタル地形の細かさ（細分化回数）
 	//3では20秒程度かかった。 4では1分程度かかった。 5では7分~28分程度かかった。 6では数十分~数時間以上の時間がかかった。
-	//描画を優先しない場合はfinenessが3で4/1秒。
 	//7ではメッシュの超点数が制限(65000)を超えてしまうので不可能。
+	//描画を優先しない場合はfinenessが3で4/1秒。 4では2~3秒程度。
 	//スペックによる差があるため3倍かかると見込んだほうが良い。
 	//理想は6~7 (size/2^fineness=1になる数値)
-	//TODO 現在フラクタル地形を使用していないため不使用
-	//public const int fineness = 3;
+	//TODO 細分化回数の違うメッシュをつなぎ合わせるようにする
+	public const int fineness = 4;
 
-	//TODO チャンクの読み込み速度目標値: 2.17013888...9チャンク/秒 (1000km/hで動くものに対応させるため）
+	//TODO チャンクの読み込み速度目標値: 2.17013888...9チャンク/秒 (1000km/hで動くものに対応させるため。チャンク生成速度とは異なる）
 
 	public Material mat;
 	public GameObject obj;
@@ -67,10 +70,11 @@ public class Chunk : ISerializable {
 			obj = new GameObject ();
 			obj.AddComponent<MeshFilter> ();
 			obj.AddComponent<MeshRenderer> ();
+			obj.AddComponent<MeshCollider> ();
 			//obj.AddComponent<MeshCollider> ().convex = true;
-			BoxCollider box = obj.AddComponent<BoxCollider> ();
+			/*BoxCollider box = obj.AddComponent<BoxCollider> ();
 			box.center = new Vector3 (size / 2, -0.5f, size / 2);
-			box.size = new Vector3 (size, 1, size);
+			box.size = new Vector3 (size, 1, size);*/
 
 			obj.transform.position = new Vector3 (x * size, 0, z * size);
 		}
@@ -79,7 +83,7 @@ public class Chunk : ISerializable {
 		yield return null;
 
 		if (mesh == null) {
-			/*Debug.Log ("チャンク生成開始 X: " + x + " Z: " + z + " Date: " + DateTime.Now);
+			Debug.Log ("チャンク生成開始 X: " + x + " Z: " + z + " Date: " + DateTime.Now);
 			List<Vector3> points = new List<Vector3> ();
 			for (int x2 = x - 1; x2 <= x + 1; x2++) {
 				for (int z2 = z - 1; z2 <= z + 1; z2++) {
@@ -120,20 +124,20 @@ public class Chunk : ISerializable {
 				mesh = (Mesh)routine.Current;
 				//Debug.Log ("チャンク生成完了 X: " + x + " Z: " + z + " Date: " + DateTime.Now);
 				yield return null;
-			}*/
+			}
 
-			Mesh m = BPMesh.getQuadFlat ();
+			/*Mesh m = BPMesh.getQuadFlat ();
 			Vector3[] verts = m.vertices;
 			BPMesh.scale (verts, size);
 			m.vertices = verts;
 			m.RecalculateBounds ();
 			m.RecalculateNormals ();
-			mesh = m;
+			mesh = m;*/
 		}
 
 		MeshFilter meshfilter = obj.GetComponent<MeshFilter> ();
 		meshfilter.sharedMesh = mesh;
 
-		//obj.GetComponent<MeshCollider> ().sharedMesh = meshfilter.sharedMesh;
+		obj.GetComponent<MeshCollider> ().sharedMesh = meshfilter.sharedMesh;
 	}
 }

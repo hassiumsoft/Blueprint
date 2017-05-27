@@ -25,7 +25,7 @@ public class PlayerObject : MonoBehaviour {
 	}
 
 	void OnDestroy () {
-		p_camera.transform.SetParent (null);
+		p_camera.transform.SetParent (null);//TODO Can't destroy Transform component of 'Main Camera'. If you want to destroy the game object, please call 'Destroy' on the game object instead. Destroying the transform component is not allowed.
 	}
 
 	public void init (Player player) {
