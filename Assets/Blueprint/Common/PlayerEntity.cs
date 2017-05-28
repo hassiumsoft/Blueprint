@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-public class PlayerObject : MonoBehaviour {
+public class PlayerEntity : MonoBehaviour {
 	public static Vector3 CAMERA_POS = new Vector3 (0f, 2f, -2.5f);
 	public static Vector3 CAMERA_ANGLE = new Vector3 (15f, 0f, 0f);
 

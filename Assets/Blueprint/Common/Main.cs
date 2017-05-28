@@ -26,7 +26,8 @@ public class Main : MonoBehaviour {
 
 	//TODO 一時的
 	public Material mat;
-	public PlayerObject playerPrefab;
+	public PlayerEntity playerPrefab;
+	public MapEntity objPrefab;
 
 	void Awake () {
 		Main.main = this;
@@ -84,6 +85,9 @@ public class Main : MonoBehaviour {
 		//初期設定を行っているかどうか
 		isSetupped = PlayerPrefs.GetInt(KEY_SETUPPED, 0) == 1;
 		//print ("isSetupped: " + isSetupped);
+
+		Player.playerPrefab = playerPrefab;
+		MapObject.objPrefab = objPrefab;
 	}
 
 	void Start () {
@@ -167,7 +171,7 @@ public class Main : MonoBehaviour {
 
 	public IEnumerator b () {
 		GameObject test = new GameObject ();
-		Mesh test_m = BPMesh.getCylinder (1, 3, 3);
+		Mesh test_m = BPMesh.getCylinder (1, 3, 3, true);
 		test_m.RecalculateBounds ();
 		test_m.RecalculateNormals ();
 		test.AddComponent<MeshFilter> ().sharedMesh = test_m;
@@ -199,9 +203,9 @@ public class Main : MonoBehaviour {
 			} else {
 				player = playingmap.players [pid];
 			}
-			player.playerPrefab = playerPrefab;
 			yield return StartCoroutine (player.generate (this));
 
+			//TODO セーブが長い & マップに変更があったか判定して保存
 			yield return StartCoroutine (MapManager.saveMapAsync (playingmap));
 		}
 	}

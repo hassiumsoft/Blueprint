@@ -4,57 +4,51 @@ using System.Runtime.Serialization;
 using UnityEngine;
 
 [Serializable]
-public class Player : ISerializable {
-	public const string KEY_NAME = "NAME";
+public class MapObject {
+	public const string KEY_ID = "ID";
 	public const string KEY_POS = "POS";
 
-	public static PlayerEntity playerPrefab;
-	public PlayerEntity obj;
+	public static MapEntity objPrefab;
+	public MapEntity obj;
 
-	public Map map;
-	public string name;
+	public Chunk chunk;
+	//public int id;
 	public Vector3 pos;
 
-	public Player (Map map, string name) {
-		this.map = map;
-		this.name = name;
-
-		pos = new Vector3 ();
-		respawn ();
+	public MapObject (Chunk chunk, int id, Vector3 pos) {
+		this.chunk = chunk;
+		//this.id = id;
+		this.pos = pos;
 	}
 
-	protected Player (SerializationInfo info, StreamingContext context) {
+	protected MapObject (SerializationInfo info, StreamingContext context) {
 		if (info == null)
 			throw new ArgumentNullException ("info");
-		name = info.GetString (KEY_NAME);
+		//id = info.GetInt32 (KEY_ID);
 		pos = ((SerializableVector3)info.GetValue (KEY_POS, typeof(SerializableVector3))).toVector3 ();
 	}
 
 	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
 		if (info == null)
 			throw new ArgumentNullException ("info");
-		info.AddValue (KEY_NAME, name);
+		//info.AddValue (KEY_ID, id);
 		if (obj != null) {
 			pos = obj.transform.position;
 		}
 		info.AddValue (KEY_POS, new SerializableVector3 (pos));
 	}
 
+	public void moveToChunk (Chunk chunk) {
+		this.chunk = chunk;
+	}
+
 	public IEnumerator generate (MonoBehaviour behaviour) {
 		if (obj == null) {
 			yield return null;//TODO 仮
 
-			(obj = GameObject.Instantiate (playerPrefab)).init (this);
+			(obj = GameObject.Instantiate (objPrefab)).init (this);
 
 			obj.transform.position = pos;
 		}
-	}
-
-	public void respawn () {
-		pos = map.getPlayerSpawnPoint ();
-		if (obj != null) {
-			obj.transform.position = pos;
-		}
-		Debug.Log (DateTime.Now + " プレイヤー\"" + name + "\"がリスポーン: " + pos);
 	}
 }

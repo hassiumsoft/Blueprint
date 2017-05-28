@@ -9,6 +9,8 @@ public class Chunk : ISerializable {
 	public const string KEY_X = "X";
 	public const string KEY_Z = "Z";
 	public const string KEY_MESH = "MESH";
+	public const string KEY_OBJECTS = "OBJECTS";
+
 	//最大チャンク数: -16777216~16777215 ( -2^(32-1)/128 ~ 2^(32-1)/128-1 )
 	//チャンクの頂点数: 3072 (4*4^4*3 = 4*4^fineness*3)
 	public const int size = 128; //チャンクサイズ（変更してはいけない）
@@ -36,7 +38,11 @@ public class Chunk : ISerializable {
 	public Map map;
 	public int x { get; }
 	public int z { get; }
+
+	//地形データ。後にMapObject化して複数の地形を組み合わせられるようにする。
 	public Mesh mesh;
+	//オブジェクトデータ
+	public List<MapObject> objs;
 
 	//public SerializableMaterial sMat;
 
@@ -44,6 +50,7 @@ public class Chunk : ISerializable {
 		this.map = map;
 		this.x = x;
 		this.z = z;
+		objs = new List<MapObject> ();
 	}
 
 	protected Chunk (SerializationInfo info, StreamingContext context) {
@@ -55,6 +62,10 @@ public class Chunk : ISerializable {
 		if (sMesh != null) {
 			mesh = sMesh.toMesh ();
 		}
+		objs = (List<MapObject>)info.GetValue (KEY_OBJECTS, typeof(List<MapObject>));
+		for (int a = 0; a < objs.Count; a++) {
+			objs [a].chunk = this;
+		}
 	}
 
 	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
@@ -63,6 +74,7 @@ public class Chunk : ISerializable {
 		info.AddValue (KEY_X, x);
 		info.AddValue (KEY_Z, z);
 		info.AddValue (KEY_MESH, mesh == null ? null : new SerializableMesh (mesh));
+		info.AddValue (KEY_OBJECTS, objs);
 	}
 
 	public IEnumerator generate (MonoBehaviour behaviour) {
@@ -139,5 +151,11 @@ public class Chunk : ISerializable {
 		meshfilter.sharedMesh = mesh;
 
 		obj.GetComponent<MeshCollider> ().sharedMesh = meshfilter.sharedMesh;
+
+
+
+		for (int a = 0; a < objs.Count; a++) {
+			objs [a].generate (behaviour);
+		}
 	}
 }
