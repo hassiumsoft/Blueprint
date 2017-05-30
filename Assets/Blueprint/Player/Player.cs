@@ -8,18 +8,23 @@ public class Player : ISerializable {
 	public const string KEY_NAME = "NAME";
 	public const string KEY_POS = "POS";
 
+	//TODO スキン別にPrefabを作成
 	public static PlayerEntity playerPrefab;
+
 	public PlayerEntity obj;
+
+	//描画されるチャンクの範囲はプレイヤーを中心にした正方形である。大きさは描画距離(Main.drawDistance)となる。
 
 	public Map map;
 	public string name;
-	public Vector3 pos;
+	public Vector3 _pos;
+	public Vector3 pos { get { return obj == null ? _pos : obj.transform.position; } set { teleport (_pos = value); } }
 
 	public Player (Map map, string name) {
 		this.map = map;
 		this.name = name;
 
-		pos = new Vector3 ();
+		_pos = new Vector3 ();
 		respawn ();
 	}
 
@@ -27,34 +32,32 @@ public class Player : ISerializable {
 		if (info == null)
 			throw new ArgumentNullException ("info");
 		name = info.GetString (KEY_NAME);
-		pos = ((SerializableVector3)info.GetValue (KEY_POS, typeof(SerializableVector3))).toVector3 ();
+		_pos = ((SerializableVector3)info.GetValue (KEY_POS, typeof(SerializableVector3))).toVector3 ();
 	}
 
 	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
 		if (info == null)
 			throw new ArgumentNullException ("info");
 		info.AddValue (KEY_NAME, name);
-		if (obj != null) {
-			pos = obj.transform.position;
-		}
 		info.AddValue (KEY_POS, new SerializableVector3 (pos));
 	}
 
 	public IEnumerator generate (MonoBehaviour behaviour) {
+		yield return null;//TODO 一時的
 		if (obj == null) {
-			yield return null;//TODO 仮
-
 			(obj = GameObject.Instantiate (playerPrefab)).init (this);
-
-			obj.transform.position = pos;
 		}
 	}
 
 	public void respawn () {
-		pos = map.getPlayerSpawnPoint ();
+		teleport (map.getPlayerSpawnPoint ());
+		Debug.Log (DateTime.Now + " プレイヤー\"" + name + "\"がリスポーン: " + pos);
+	}
+
+	public void teleport (Vector3 pos) {
+		_pos = pos;
 		if (obj != null) {
 			obj.transform.position = pos;
 		}
-		Debug.Log (DateTime.Now + " プレイヤー\"" + name + "\"がリスポーン: " + pos);
 	}
 }

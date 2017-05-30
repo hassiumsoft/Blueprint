@@ -200,7 +200,7 @@ public class BPMesh {
 
 	public static IEnumerator setVertAsync(Vector3[] verts, Vector3 target, Vector3 result) {
 		for (int a = 0; a < verts.Length; a++) {
-			if (1 <= Time.deltaTime * Application.targetFrameRate) {
+			if (1 / Time.deltaTime < Main.min_fps) {
 				yield return null;
 			}
 			if (verts [a] == target) {
@@ -219,7 +219,7 @@ public class BPMesh {
 
 	public static IEnumerator setVertAsync(List<Vector3> verts, Vector3 target, Vector3 result) {
 		for (int a = 0; a < verts.Count; a++) {
-			if (1 <= Time.deltaTime * Application.targetFrameRate) {
+			if (1 / Time.deltaTime < Main.min_fps) {
 				yield return null;
 			}
 			if (verts [a] == target) {
@@ -301,13 +301,70 @@ public class BPMesh {
 	}
 
 	//中点変位法を使用したフラクタル地形
-	public static IEnumerator getBPFractalTerrain (MonoBehaviour behaviour, int fineness, float size, float height) {
-		yield return getBPFractalTerrain (behaviour, fineness, size, height, new Vector3[0]);
+	public static Mesh getBPFractalTerrain (int fineness, float size, float height) {
+		return getBPFractalTerrain (fineness, size, height, new List<Vector3> ());
 	}
 
 	//pointsに点群データを入れておくことで、X,Zが一致する点のYを点群データに合わせることが出来る。
 	//チャンクに対応した地形を生成する際に使用する。
-	public static IEnumerator getBPFractalTerrain (MonoBehaviour behaviour, int fineness, float size, float height, Vector3[] points) {
+	public static Mesh getBPFractalTerrain (int fineness, float size, float height, List<Vector3> points) {
+		Mesh mesh = getQuadTerrain ();
+
+		Vector3[] verts = mesh.vertices;
+
+		scale (verts, size);
+
+		for (int a = 0; a < verts.Length; a++) {
+			Vector3 v0 = verts [a];
+			v0.y = Random.Range (0f, height);
+			setVert (verts, verts [a], v0);
+			for (int b = 0; b < points.Count; b++) {
+				if (verts [a].x == points [b].x && verts [a].z == points [b].z) {
+					setVert (verts, verts [a], points [b]);
+					points.RemoveAt (b);
+					break;
+				}
+			}
+		}
+
+		mesh.vertices = verts;
+
+		for (int a = 0; a < fineness; a++) {
+			int b = mesh.vertices.Length;
+
+			mesh = BPMesh.Subdivide_Half (mesh, false);
+
+			verts = mesh.vertices;
+			while (b < verts.Length) {
+				bool c = true;
+
+				for (int e = 0; e < points.Count; e++) {
+					if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
+						c = false;
+						setVert (verts, verts [b], points [e]);
+						points.RemoveAt (e);
+						break;
+					}
+				}
+
+				if (c) {
+					float d = height / Mathf.Pow (2, a + 1);
+					setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
+				}
+
+				b++;
+			}
+			mesh.vertices = verts;
+		}
+		mesh.RecalculateNormals ();
+		return mesh;
+	}
+
+	public static IEnumerator getBPFractalTerrainAsync (MonoBehaviour behaviour, int fineness, float size, float height) {
+		yield return getBPFractalTerrainAsync (behaviour, fineness, size, height, new List<Vector3> ());
+	}
+
+	public static IEnumerator getBPFractalTerrainAsync (MonoBehaviour behaviour, int fineness, float size, float height, List<Vector3> points) {
 		Mesh mesh = getQuadTerrain ();
 
 		Vector3[] verts = mesh.vertices;
@@ -321,15 +378,13 @@ public class BPMesh {
 				setVert (verts, verts [a], v0);
 			else
 				yield return behaviour.StartCoroutine (setVertAsync (verts, verts [a], v0));
-			for (int b = 0; b < points.Length; b++) {
-				if (1 <= Time.deltaTime * Application.targetFrameRate) {
-					yield return null;
-				}
+			for (int b = 0; b < points.Count; b++) {
 				if (verts [a].x == points [b].x && verts [a].z == points [b].z) {
 					if (behaviour == null)
 						setVert (verts, verts [a], points [b]);
 					else
 						yield return behaviour.StartCoroutine (setVertAsync (verts, verts [a], points [b]));
+					points.RemoveAt (b);
 					break;
 				}
 			}
@@ -345,22 +400,20 @@ public class BPMesh {
 
 			verts = mesh.vertices;
 			while (b < verts.Length) {
-				if (1 <= Time.deltaTime * Application.targetFrameRate) {
+				if (1 / Time.deltaTime < Main.min_fps) {
 					yield return null;
 				}
 
 				bool c = true;
 
-				for (int e = 0; e < points.Length; e++) {
-					if (1 <= Time.deltaTime * Application.targetFrameRate) {
-						yield return null;
-					}
+				for (int e = 0; e < points.Count; e++) {
 					if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
 						c = false;
 						if (behaviour == null)
 							setVert (verts, verts [b], points [e]);
 						else
 							yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], points [e]));
+						points.RemoveAt (e);
 						break;
 					}
 				}

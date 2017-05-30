@@ -4,18 +4,20 @@ using System.Runtime.Serialization;
 using UnityEngine;
 
 [Serializable]
-public class MapObject {
+public class MapObject : ISerializable {
 	public const string KEY_ID = "ID";
 	public const string KEY_POS = "POS";
 
+	//TODO オブジェクト別にPrefabを作成
 	public static MapEntity objPrefab;
+
 	public MapEntity obj;
 
 	public Chunk chunk;
 	//public int id;
 	public Vector3 pos;
 
-	public MapObject (Chunk chunk, int id, Vector3 pos) {
+	public MapObject (Chunk chunk/*, int id*/, Vector3 pos) {
 		this.chunk = chunk;
 		//this.id = id;
 		this.pos = pos;
@@ -47,8 +49,6 @@ public class MapObject {
 			yield return null;//TODO 仮
 
 			(obj = GameObject.Instantiate (objPrefab)).init (this);
-
-			obj.transform.position = pos;
 		}
 	}
 }

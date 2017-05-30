@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class MapEntity : MonoBehaviour {
 	MapObject obj;
@@ -18,6 +17,8 @@ public class MapEntity : MonoBehaviour {
 
 	public void init (MapObject obj) {
 		this.obj = obj;
+
+		transform.position = obj.pos;
 
 		initialized = true;
 	}

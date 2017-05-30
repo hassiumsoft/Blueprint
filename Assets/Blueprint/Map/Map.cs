@@ -9,6 +9,7 @@ public class Map : ISerializable {
 	public const string KEY_CREATED = "CREATED";
 	public const string KEY_CHUNKS = "CHUNKS";
 	public const string KEY_PLAYERS = "PLAYERS";
+	public const float ABYSS_HEIGHT = -100f;
 
 	public string mapname { get; }
 
@@ -54,9 +55,9 @@ public class Map : ISerializable {
 		info.AddValue (KEY_PLAYERS, players);
 	}
 
-	public int getChunk (int x, int y) {
+	public int getChunk (int chunkx, int chunkz) {
 		for (int n = 0; n < chunks.Count; n++) {
-			if (chunks [n].x == x && chunks [n].z == y) {
+			if (chunks [n].x == chunkx && chunks [n].z == chunkz) {
 				return n;
 			}
 		}
@@ -84,7 +85,7 @@ public class Map : ISerializable {
 			return hit.point.y;
 		}
 
-		return 0;
+		return ABYSS_HEIGHT;
 	}
 
 	public float getTerrainHeight (float x, float z) {

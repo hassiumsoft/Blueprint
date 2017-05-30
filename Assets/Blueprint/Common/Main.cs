@@ -10,22 +10,28 @@ public class Main : MonoBehaviour {
 	public const string VERSION = "0.001alpha";
 	public const string KEY_FIRSTSTART = "FIRSTSTART";
 	public const string KEY_SETUPPED = "SETUPPED";
+	public const string KEY_DRAW_DISTANCE = "DRAWDISTANCE";
+
+	public const int MIN_DRAW_DISTANCE = 1;
+	public const int MAX_DRAW_DISTANCE = 10; //TODO 変更する可能性あり
+	public const int DEFAULT_DRAW_DISTANCE = 2;
 
 	public static Main main;
+	public static Map playingmap { get; private set; }
+	public static string ssdir { get; private set; }
+	public static int min_fps = 30;
+
 	private static bool firstStart = false;
 	public static bool isFirstStart {
 		get { return firstStart; }
 		private set { firstStart = value; }
 	}
 	public static DateTime[] firstStartTimes { get; private set; }
-	public static string ssdir { get; private set; }
 	public static bool isSetupped = false;
-	public static Map playingmap { get; private set; }
+	public static int drawDistance = DEFAULT_DRAW_DISTANCE;
 
-	//public Camera c;
-
-	//TODO 一時的
-	public Material mat;
+	//TODO 以下、一時的
+	public Material mat; //Chunk.csにて使用中
 	public PlayerEntity playerPrefab;
 	public MapEntity objPrefab;
 
@@ -86,6 +92,8 @@ public class Main : MonoBehaviour {
 		isSetupped = PlayerPrefs.GetInt(KEY_SETUPPED, 0) == 1;
 		//print ("isSetupped: " + isSetupped);
 
+		drawDistance = PlayerPrefs.GetInt (KEY_DRAW_DISTANCE, DEFAULT_DRAW_DISTANCE);
+
 		Player.playerPrefab = playerPrefab;
 		MapObject.objPrefab = objPrefab;
 	}
@@ -103,7 +111,7 @@ public class Main : MonoBehaviour {
 	void Update () {
 		//ScreenShot
 		if (Input.GetKeyDown (KeyCode.F2)) {
-			StartCoroutine (screenShot ());
+			screenShot ();
 		}
 	}
 
@@ -115,8 +123,7 @@ public class Main : MonoBehaviour {
 		#endif
 	}
 
-	public IEnumerator screenShot () {
-		yield return null;
+	public void screenShot () {
 		Directory.CreateDirectory (ssdir);
 		string fileName = DateTime.Now.Ticks + ".png";
 		Application.CaptureScreenshot (Path.Combine (ssdir, fileName));
@@ -150,6 +157,29 @@ public class Main : MonoBehaviour {
 			BPCanvas.bpCanvas.selectMapPanel.show (true);
 		} else {
 			playingmap = map;
+
+			/*GameObject test = new GameObject ();
+			Mesh test_m = BPMesh.getCylinder (1, 3, 3, true);
+			test_m.RecalculateBounds ();
+			test_m.RecalculateNormals ();
+			test.AddComponent<MeshFilter> ().sharedMesh = test_m;
+			test.AddComponent<MeshRenderer> ();
+			test.AddComponent<MeshCollider> ();*/
+
+			//TODO プレイヤーの生成に時間がかかる
+
+			int pid = playingmap.getPlayer ("master");//TODO 仮
+			Player player;
+			if (pid == -1) {
+				playingmap.players.Add (player = new Player (playingmap, "master"));
+			} else {
+				player = playingmap.players [pid];
+			}
+			yield return Main.main.StartCoroutine (player.generate (main));
+
+			//TODO セーブが長い & マップに変更があったか判定して保存
+			//yield return StartCoroutine (MapManager.saveMapAsync (playingmap));
+
 			print (DateTime.Now + " マップを開きました: " + map.mapname);
 		}
 	}
@@ -163,50 +193,5 @@ public class Main : MonoBehaviour {
 			}*/
 		}
 		playingmap = null;
-	}
-
-	public void a () {
-		StartCoroutine (b ());
-	}
-
-	public IEnumerator b () {
-		GameObject test = new GameObject ();
-		Mesh test_m = BPMesh.getCylinder (1, 3, 3, true);
-		test_m.RecalculateBounds ();
-		test_m.RecalculateNormals ();
-		test.AddComponent<MeshFilter> ().sharedMesh = test_m;
-		test.AddComponent<MeshRenderer> ();
-		test.AddComponent<MeshCollider> ();
-
-		if (playingmap != null) {
-			for (int x = -2; x < 2; x++) {
-				for (int y = -2; y < 2; y++) {
-					if (playingmap.getChunk (x, y) == -1) {
-						playingmap.chunks.Add (new Chunk (playingmap, x, y));
-					}
-				}
-			}
-
-			for (int a = 0; a < playingmap.chunks.Count; a++) {
-				//TODO 一時的
-				playingmap.chunks [a].mat = mat;
-
-				yield return StartCoroutine (playingmap.chunks [a].generate (this));
-			}
-
-			//TODO プレイヤーの生成に時間がかかる
-
-			int pid = playingmap.getPlayer ("master");//TODO 仮
-			Player player;
-			if (pid == -1) {
-				playingmap.players.Add (player = new Player (playingmap, "master"));
-			} else {
-				player = playingmap.players [pid];
-			}
-			yield return StartCoroutine (player.generate (this));
-
-			//TODO セーブが長い & マップに変更があったか判定して保存
-			yield return StartCoroutine (MapManager.saveMapAsync (playingmap));
-		}
 	}
 }

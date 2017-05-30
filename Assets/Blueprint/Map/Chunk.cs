@@ -32,7 +32,9 @@ public class Chunk : ISerializable {
 
 	//TODO チャンクの読み込み速度目標値: 2.17013888...9チャンク/秒 (1000km/hで動くものに対応させるため。チャンク生成速度とは異なる）
 
+	//TODO 一時的。（Main.csも確認）
 	public Material mat;
+
 	public GameObject obj;
 
 	public Map map;
@@ -51,6 +53,9 @@ public class Chunk : ISerializable {
 		this.x = x;
 		this.z = z;
 		objs = new List<MapObject> ();
+
+		//TODO 一時的
+		mat = Main.main.mat;
 	}
 
 	protected Chunk (SerializationInfo info, StreamingContext context) {
@@ -66,6 +71,9 @@ public class Chunk : ISerializable {
 		for (int a = 0; a < objs.Count; a++) {
 			objs [a].chunk = this;
 		}
+
+		//TODO 一時的
+		mat = Main.main.mat;
 	}
 
 	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
@@ -78,6 +86,10 @@ public class Chunk : ISerializable {
 	}
 
 	public IEnumerator generate (MonoBehaviour behaviour) {
+		return generate(behaviour, false);
+	}
+
+	public IEnumerator generate (MonoBehaviour behaviour, bool pause) {
 		if (obj == null) {
 			obj = new GameObject ();
 			obj.AddComponent<MeshFilter> ();
@@ -130,21 +142,17 @@ public class Chunk : ISerializable {
 				}
 			}
 
-			IEnumerator routine = BPMesh.getBPFractalTerrain (null, fineness, size, height, points.ToArray ());
-			yield return behaviour.StartCoroutine (routine);
-			if (routine.Current is Mesh) {
-				mesh = (Mesh)routine.Current;
-				//Debug.Log ("チャンク生成完了 X: " + x + " Z: " + z + " Date: " + DateTime.Now);
-				yield return null;
+			if (pause) {
+				mesh = BPMesh.getBPFractalTerrain (fineness, size, height, points);
+			} else {
+				IEnumerator routine = BPMesh.getBPFractalTerrainAsync (behaviour, fineness, size, height, points);
+				yield return behaviour.StartCoroutine (routine);
+				if (routine.Current is Mesh) {
+					mesh = (Mesh)routine.Current;
+					yield return null;
+				}
 			}
-
-			/*Mesh m = BPMesh.getQuadFlat ();
-			Vector3[] verts = m.vertices;
-			BPMesh.scale (verts, size);
-			m.vertices = verts;
-			m.RecalculateBounds ();
-			m.RecalculateNormals ();
-			mesh = m;*/
+			Debug.Log ("チャンク生成完了 X: " + x + " Z: " + z + " Date: " + DateTime.Now);
 		}
 
 		MeshFilter meshfilter = obj.GetComponent<MeshFilter> ();
