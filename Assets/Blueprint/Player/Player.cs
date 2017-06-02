@@ -24,8 +24,16 @@ public class Player : ISerializable {
 		this.map = map;
 		this.name = name;
 
-		_pos = new Vector3 ();
-		respawn ();
+		for (int x = -1; x < 1; x++) {
+			for (int z = -1; z < 1; z++) {
+				Chunk chunk = map.getChunk ((int)pos.x / Chunk.size + x, (int)pos.z / Chunk.size + z);
+				chunk.generate ();
+			}
+		}
+
+		if (_pos == null) {
+			respawn ();
+		}
 	}
 
 	protected Player (SerializationInfo info, StreamingContext context) {
@@ -42,8 +50,7 @@ public class Player : ISerializable {
 		info.AddValue (KEY_POS, new SerializableVector3 (pos));
 	}
 
-	public IEnumerator generate (MonoBehaviour behaviour) {
-		yield return null;//TODO 一時的
+	public void generate () {
 		if (obj == null) {
 			(obj = GameObject.Instantiate (playerPrefab)).init (this);
 		}

@@ -55,13 +55,24 @@ public class Map : ISerializable {
 		info.AddValue (KEY_PLAYERS, players);
 	}
 
-	public int getChunk (int chunkx, int chunkz) {
+	public int getChunkIndex (int chunkx, int chunkz) {
 		for (int n = 0; n < chunks.Count; n++) {
 			if (chunks [n].x == chunkx && chunks [n].z == chunkz) {
 				return n;
 			}
 		}
 		return -1;
+	}
+
+	public Chunk getChunk (int chunkx, int chunkz) {
+		for (int n = 0; n < chunks.Count; n++) {
+			if (chunks [n].x == chunkx && chunks [n].z == chunkz) {
+				return chunks [n];
+			}
+		}
+		Chunk chunk = new Chunk (this, chunkx, chunkz);
+		chunks.Add (chunk);
+		return chunk;
 	}
 
 	public int getPlayer (string name) {

@@ -175,7 +175,7 @@ public class Main : MonoBehaviour {
 			} else {
 				player = playingmap.players [pid];
 			}
-			yield return Main.main.StartCoroutine (player.generate (main));
+			player.generate ();
 
 			//TODO セーブが長い & マップに変更があったか判定して保存
 			//yield return StartCoroutine (MapManager.saveMapAsync (playingmap));

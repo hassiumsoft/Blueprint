@@ -44,10 +44,8 @@ public class MapObject : ISerializable {
 		this.chunk = chunk;
 	}
 
-	public IEnumerator generate (MonoBehaviour behaviour) {
+	public void generate () {
 		if (obj == null) {
-			yield return null;//TODO 仮
-
 			(obj = GameObject.Instantiate (objPrefab)).init (this);
 		}
 	}

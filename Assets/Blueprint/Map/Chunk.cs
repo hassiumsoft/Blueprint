@@ -43,6 +43,11 @@ public class Chunk : ISerializable {
 
 	//地形データ。後にMapObject化して複数の地形を組み合わせられるようにする。
 	public Mesh mesh;
+	private bool _generating = false;
+	public bool generating { get { return _generating; } private set { _generating = value; } } //メッシュが生成処理中
+	private bool _pause_generating = false;
+	public bool pause_generating { get { return _pause_generating; } private set { _pause_generating = value; } } //生成処理の待機中
+
 	//オブジェクトデータ
 	public List<MapObject> objs;
 
@@ -85,15 +90,12 @@ public class Chunk : ISerializable {
 		info.AddValue (KEY_OBJECTS, objs);
 	}
 
-	public IEnumerator generate (MonoBehaviour behaviour) {
-		return generate(behaviour, false);
-	}
-
-	public IEnumerator generate (MonoBehaviour behaviour, bool pause) {
+	private void objInit () {
 		if (obj == null) {
 			obj = new GameObject ();
 			obj.AddComponent<MeshFilter> ();
-			obj.AddComponent<MeshRenderer> ();
+			//obj.AddComponent<MeshRenderer> ();
+			obj.AddComponent<MeshRenderer> ().material = mat; //TODO
 			obj.AddComponent<MeshCollider> ();
 			//obj.AddComponent<MeshCollider> ().convex = true;
 			/*BoxCollider box = obj.AddComponent<BoxCollider> ();
@@ -102,19 +104,91 @@ public class Chunk : ISerializable {
 
 			obj.transform.position = new Vector3 (x * size, 0, z * size);
 		}
+	}
 
-		obj.GetComponent<MeshRenderer> ().material = mat;
-		yield return null;
+	public void generate () {
+		if (!generating) {
+			generating = true;
 
-		if (mesh == null) {
-			Debug.Log ("チャンク生成開始 X: " + x + " Z: " + z + " Date: " + DateTime.Now);
-			List<Vector3> points = new List<Vector3> ();
-			for (int x2 = x - 1; x2 <= x + 1; x2++) {
-				for (int z2 = z - 1; z2 <= z + 1; z2++) {
-					if (x2 != x || z2 != z) {
-						int a = map.getChunk (x2, z2);
-						if (a != -1) {
-							Chunk chunk = map.chunks [a];
+			objInit ();
+
+			if (mesh == null) {
+				Debug.Log (DateTime.Now + " チャンク生成開始 X: " + x + " Z: " + z);
+
+				List<Vector3> points = new List<Vector3> ();
+				for (int x2 = x - 1; x2 <= x + 1; x2++) {
+					for (int z2 = z - 1; z2 <= z + 1; z2++) {
+						if (x2 != x || z2 != z) {
+							Chunk chunk = map.getChunk (x2, z2);
+							if (chunk.mesh == null && chunk.generating) {
+								generating = false;
+								Debug.Log (DateTime.Now + " チャンク生成中止 X: " + x + " Z: " + z);
+								return;
+							}
+
+							if (chunk.mesh != null) {
+								List<Vector3> verts1 = new List<Vector3> (chunk.mesh.vertices);
+								for (int b = 0; b < verts1.Count;) {
+									if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size) {
+										b++;
+									} else {
+										verts1.RemoveAt (b);
+									}
+								}
+								Vector3[] verts2 = verts1.ToArray ();
+								for (int c = 0; c < verts2.Length; c++) {
+									verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
+								}
+								points.AddRange (verts2);
+							}
+						}
+					}
+				}
+
+				mesh = BPMesh.getBPFractalTerrain (fineness, size, height, points);
+
+				Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
+			}
+
+			MeshFilter meshfilter = obj.GetComponent<MeshFilter> ();
+			meshfilter.sharedMesh = mesh;
+
+			obj.GetComponent<MeshCollider> ().sharedMesh = meshfilter.sharedMesh;
+
+
+
+			for (int a = 0; a < objs.Count; a++) {
+				objs [a].generate ();
+			}
+
+			generating = false;
+		}
+	}
+
+	public IEnumerator generate (MonoBehaviour behaviour) {
+		if (!generating) {
+			generating = true;
+
+			objInit ();
+			yield return null;
+
+			if (mesh == null) {
+				Debug.Log (DateTime.Now + " チャンク生成開始 X: " + x + " Z: " + z);
+
+				List<Vector3> points = new List<Vector3> ();
+				for (int x2 = x - 1; x2 <= x + 1; x2++) {
+					for (int z2 = z - 1; z2 <= z + 1; z2++) {
+						if (x2 != x || z2 != z) {
+							Chunk chunk = map.getChunk (x2, z2);
+							if (chunk.mesh == null && chunk.generating && !chunk.pause_generating) {
+								//TODO 自チャンクの生成を待機しているチャンクを待機すると矛盾が生じるのを改善する必要がある。
+								pause_generating = true;
+								while (chunk.generating) {
+									yield return new WaitForSeconds (3);
+								}
+								pause_generating = false;
+							}
+
 							if (chunk.mesh != null) {
 								List<Vector3> verts1 = new List<Vector3> (chunk.mesh.vertices);
 								for (int b = 0; b < verts1.Count;) {
@@ -140,30 +214,30 @@ public class Chunk : ISerializable {
 						}
 					}
 				}
-			}
 
-			if (pause) {
-				mesh = BPMesh.getBPFractalTerrain (fineness, size, height, points);
-			} else {
 				IEnumerator routine = BPMesh.getBPFractalTerrainAsync (behaviour, fineness, size, height, points);
 				yield return behaviour.StartCoroutine (routine);
 				if (routine.Current is Mesh) {
 					mesh = (Mesh)routine.Current;
 					yield return null;
 				}
+
+				Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
 			}
-			Debug.Log ("チャンク生成完了 X: " + x + " Z: " + z + " Date: " + DateTime.Now);
-		}
 
-		MeshFilter meshfilter = obj.GetComponent<MeshFilter> ();
-		meshfilter.sharedMesh = mesh;
+			MeshFilter meshfilter = obj.GetComponent<MeshFilter> ();
+			meshfilter.sharedMesh = mesh;
 
-		obj.GetComponent<MeshCollider> ().sharedMesh = meshfilter.sharedMesh;
+			obj.GetComponent<MeshCollider> ().sharedMesh = meshfilter.sharedMesh;
 
 
 
-		for (int a = 0; a < objs.Count; a++) {
-			objs [a].generate (behaviour);
+			for (int a = 0; a < objs.Count; a++) {
+				objs [a].generate ();
+				//objs [a].generate (behaviour); TODO
+			}
+
+			generating = false;
 		}
 	}
 }

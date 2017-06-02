@@ -16,17 +16,19 @@ public class PlayerEntity : MonoBehaviour {
 	}
 	
 	void Update () {
-		if ((int)lastPos.x / Chunk.size != transform.position.x / Chunk.size || (int)lastPos.z / Chunk.size != transform.position.z / Chunk.size) {
-			reloadChunk (false);
+		if ((int)lastPos.x / Chunk.size != (int)transform.position.x / Chunk.size || (int)lastPos.z / Chunk.size != (int)transform.position.z / Chunk.size) {
+			reloadChunk ();
+			//reloadChunk (false); TODO
 		}
 
 		//TODO メニューを開いていない状態でのみ操作できるようにする
 		if (Input.GetMouseButtonDown (0)) {
 			Vector3 pos = p_camera.ViewportToWorldPoint (Input.mousePosition);
-			Chunk chunk = player.map.chunks [player.map.getChunk ((int)transform.position.x / Chunk.size, (int)transform.position.z / Chunk.size)];
+			Chunk chunk = player.map.getChunk ((int)transform.position.x / Chunk.size, (int)transform.position.z / Chunk.size);
 			MapObject mapobj = new MapObject (chunk, pos);
 			chunk.objs.Add (mapobj);
-			mapobj.generate (Main.main);
+			mapobj.generate ();
+			//mapobj.generate (Main.main); TODO
 		}
 		if (transform.position.y < Map.ABYSS_HEIGHT) {
 			print (DateTime.Now + " プレイヤー\"" + player.name + "\"が奈落に落ちました");
@@ -54,24 +56,16 @@ public class PlayerEntity : MonoBehaviour {
 		p_camera.transform.localPosition = CAMERA_POS;
 		p_camera.transform.localEulerAngles = CAMERA_ANGLE;
 
-		reloadChunk (true);
-		transform.position = player.pos;
+		reloadChunk ();
 
 		initialized = true;
 	}
 
-	public void reloadChunk (bool pause) {
-		StartCoroutine (a (pause));
-	}
-
-	private IEnumerator a (bool pause) {
+	public void reloadChunk () {
 		for (int x = -Main.drawDistance; x < Main.drawDistance; x++) {
 			for (int z = -Main.drawDistance; z < Main.drawDistance; z++) {
-				if (player.map.getChunk ((int)transform.position.x / Chunk.size + x, (int)transform.position.z / Chunk.size + z) == -1) {
-					Chunk chunk = new Chunk (player.map, (int)transform.position.x / Chunk.size + x, (int)transform.position.z / Chunk.size + z);
-					player.map.chunks.Add (chunk);
-					yield return StartCoroutine (chunk.generate (this, pause));
-				}
+				Chunk chunk = player.map.getChunk ((int)transform.position.x / Chunk.size + x, (int)transform.position.z / Chunk.size + z);
+				Main.main.StartCoroutine (chunk.generate (Main.main));
 			}
 		}
 	}
