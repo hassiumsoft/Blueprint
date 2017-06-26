@@ -106,7 +106,7 @@ public class Chunk : ISerializable {
 		}
 	}
 
-	public void generate () {
+	public bool generate () {
 		if (!generating) {
 			generating = true;
 
@@ -123,7 +123,7 @@ public class Chunk : ISerializable {
 							if (chunk.mesh == null && chunk.generating) {
 								generating = false;
 								Debug.Log (DateTime.Now + " チャンク生成中止 X: " + x + " Z: " + z);
-								return;
+								return false;
 							}
 
 							if (chunk.mesh != null) {
@@ -162,7 +162,9 @@ public class Chunk : ISerializable {
 			}
 
 			generating = false;
+			return true;
 		}
+		return false;
 	}
 
 	public IEnumerator generate (MonoBehaviour behaviour) {
@@ -175,45 +177,50 @@ public class Chunk : ISerializable {
 			if (mesh == null) {
 				Debug.Log (DateTime.Now + " チャンク生成開始 X: " + x + " Z: " + z);
 
-				List<Vector3> points = new List<Vector3> ();
-				for (int x2 = x - 1; x2 <= x + 1; x2++) {
-					for (int z2 = z - 1; z2 <= z + 1; z2++) {
-						if (x2 != x || z2 != z) {
-							Chunk chunk = map.getChunk (x2, z2);
-							if (chunk.mesh == null && chunk.generating && !chunk.pause_generating) {
-								//TODO 自チャンクの生成を待機しているチャンクを待機すると矛盾が生じるのを改善する必要がある。
-								pause_generating = true;
-								while (chunk.generating) {
-									yield return new WaitForSeconds (3);
+				List<Vector3> points;
+				bool w;
+				do {
+					w = false;
+					points = new List<Vector3> ();
+					for (int x2 = x - 1; x2 <= x + 1; x2++) {
+						for (int z2 = z - 1; z2 <= z + 1; z2++) {
+							if (x2 != x || z2 != z) {
+								Chunk chunk = map.getChunk (x2, z2);
+								if (chunk.mesh == null && chunk.generating && !chunk.pause_generating) {
+									pause_generating = true;
+									while (chunk.generating) {
+										w = true;
+										yield return new WaitForSeconds (3);
+									}
+									pause_generating = false;
 								}
-								pause_generating = false;
-							}
 
-							if (chunk.mesh != null) {
-								List<Vector3> verts1 = new List<Vector3> (chunk.mesh.vertices);
-								for (int b = 0; b < verts1.Count;) {
-									//ゲームプレイに影響を与えない程度にマップ生成を優先する
-									if (1 <= Time.deltaTime * Application.targetFrameRate) {
-										yield return null;
+								if (chunk.mesh != null) {
+									List<Vector3> verts1 = new List<Vector3> (chunk.mesh.vertices);
+									for (int b = 0; b < verts1.Count;) {
+										//ゲームプレイに影響を与えない程度にマップ生成を優先する
+										if (1 <= Time.deltaTime * Application.targetFrameRate) {
+											yield return null;
+										}
+										if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size) {
+											b++;
+										} else {
+											verts1.RemoveAt (b);
+										}
 									}
-									if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size) {
-										b++;
-									} else {
-										verts1.RemoveAt (b);
+									Vector3[] verts2 = verts1.ToArray ();
+									for (int c = 0; c < verts2.Length; c++) {
+										if (1 <= Time.deltaTime * Application.targetFrameRate) {
+											yield return null;
+										}
+										verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
 									}
+									points.AddRange (verts2);
 								}
-								Vector3[] verts2 = verts1.ToArray ();
-								for (int c = 0; c < verts2.Length; c++) {
-									if (1 <= Time.deltaTime * Application.targetFrameRate) {
-										yield return null;
-									}
-									verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
-								}
-								points.AddRange (verts2);
 							}
 						}
 					}
-				}
+				} while (w);
 
 				IEnumerator routine = BPMesh.getBPFractalTerrainAsync (behaviour, fineness, size, height, points);
 				yield return behaviour.StartCoroutine (routine);
