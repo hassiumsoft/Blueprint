@@ -16,7 +16,7 @@ public class Map : ISerializable {
 	//TODO マップの作成日時を読み込むにはマップを読み込まなければいけないため、
 	//マップのチャンクやプレイヤーデータを除いた基本情報のみを読み込んだり出来るようにする。
 	public DateTime created { get; }
-	public List<Chunk> chunks;
+	public List<Chunk> chunks; //TODO 後にチャンク呼び出しが遅くなる可能性があるためMapなどで高速化する必要がある
 	public List<Player> players;
 
 	//public long starttime { private set; get; } //マップの開始時間

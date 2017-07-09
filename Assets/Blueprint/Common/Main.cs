@@ -13,13 +13,14 @@ public class Main : MonoBehaviour {
 	public const string KEY_DRAW_DISTANCE = "DRAWDISTANCE";
 
 	public const int MIN_DRAW_DISTANCE = 1;
-	public const int MAX_DRAW_DISTANCE = 10; //TODO 変更する可能性あり
-	public const int DEFAULT_DRAW_DISTANCE = 2;
+	public const int MAX_DRAW_DISTANCE = 8;
+	//public const int DEFAULT_DRAW_DISTANCE = MAX_DRAW_DISTANCE;
+	public const int DEFAULT_DRAW_DISTANCE = 1;
 
 	public static Main main;
 	public static Map playingmap { get; private set; }
 	public static string ssdir { get; private set; }
-	public static int min_fps = 30;
+	public static int min_fps = 15;
 
 	private static bool firstStart = false;
 	public static bool isFirstStart {
@@ -193,5 +194,10 @@ public class Main : MonoBehaviour {
 			}*/
 		}
 		playingmap = null;
+	}
+
+	//描画を優先して負荷のかかる処理を行うため、描画状態に応じてyield returnを行う条件を返すメソッド
+	public static bool yrCondition () {
+		return 1 / Time.deltaTime < Main.min_fps;
 	}
 }

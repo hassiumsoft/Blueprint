@@ -17,7 +17,7 @@ public class Player : ISerializable {
 
 	public Map map;
 	public string name;
-	public Vector3 _pos;
+	private Vector3 _pos;
 	public Vector3 pos { get { return obj == null ? _pos : obj.transform.position; } set { teleport (_pos = value); } }
 
 	public Player (Map map, string name) {
@@ -26,7 +26,7 @@ public class Player : ISerializable {
 
 		for (int x = -1; x < 1; x++) {
 			for (int z = -1; z < 1; z++) {
-				Chunk chunk = map.getChunk ((int)pos.x / Chunk.size + x, (int)pos.z / Chunk.size + z);
+				Chunk chunk = map.getChunk (getChunkX () + x, getChunkZ () + z);
 				chunk.generate ();
 			}
 		}
@@ -66,5 +66,13 @@ public class Player : ISerializable {
 		if (obj != null) {
 			obj.transform.position = pos;
 		}
+	}
+
+	public int getChunkX () {
+		return obj == null ? Mathf.FloorToInt (pos.x / Chunk.size) : obj.getChunkX ();
+	}
+
+	public int getChunkZ () {
+		return obj == null ? Mathf.FloorToInt (pos.z / Chunk.size) : obj.getChunkZ ();
 	}
 }

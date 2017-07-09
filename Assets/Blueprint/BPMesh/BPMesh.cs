@@ -200,9 +200,8 @@ public class BPMesh {
 
 	public static IEnumerator setVertAsync(Vector3[] verts, Vector3 target, Vector3 result) {
 		for (int a = 0; a < verts.Length; a++) {
-			if (1 / Time.deltaTime < Main.min_fps) {
+			if (Main.yrCondition ())
 				yield return null;
-			}
 			if (verts [a] == target) {
 				verts [a] = result;
 			}
@@ -219,9 +218,8 @@ public class BPMesh {
 
 	public static IEnumerator setVertAsync(List<Vector3> verts, Vector3 target, Vector3 result) {
 		for (int a = 0; a < verts.Count; a++) {
-			if (1 / Time.deltaTime < Main.min_fps) {
+			if (Main.yrCondition ())
 				yield return null;
-			}
 			if (verts [a] == target) {
 				verts [a] = result;
 			}
@@ -374,16 +372,16 @@ public class BPMesh {
 		for (int a = 0; a < verts.Length; a++) {
 			Vector3 v0 = verts [a];
 			v0.y = Random.Range (0f, height);
-			if (behaviour == null)
+			//if (behaviour == null)
 				setVert (verts, verts [a], v0);
-			else
-				yield return behaviour.StartCoroutine (setVertAsync (verts, verts [a], v0));
+			//else
+			//	yield return behaviour.StartCoroutine (setVertAsync (verts, verts [a], v0));
 			for (int b = 0; b < points.Count; b++) {
 				if (verts [a].x == points [b].x && verts [a].z == points [b].z) {
-					if (behaviour == null)
+					//if (behaviour == null)
 						setVert (verts, verts [a], points [b]);
-					else
-						yield return behaviour.StartCoroutine (setVertAsync (verts, verts [a], points [b]));
+					//else
+					//	yield return behaviour.StartCoroutine (setVertAsync (verts, verts [a], points [b]));
 					points.RemoveAt (b);
 					break;
 				}
@@ -400,19 +398,18 @@ public class BPMesh {
 
 			verts = mesh.vertices;
 			while (b < verts.Length) {
-				if (1 / Time.deltaTime < Main.min_fps) {
+				if (Main.yrCondition ())
 					yield return null;
-				}
 
 				bool c = true;
 
 				for (int e = 0; e < points.Count; e++) {
 					if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
 						c = false;
-						if (behaviour == null)
+						//if (behaviour == null)
 							setVert (verts, verts [b], points [e]);
-						else
-							yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], points [e]));
+						//else
+						//	yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], points [e]));
 						points.RemoveAt (e);
 						break;
 					}
@@ -420,10 +417,10 @@ public class BPMesh {
 
 				if (c) {
 					float d = height / Mathf.Pow (2, a + 1);
-					if (behaviour == null)
+					//if (behaviour == null)
 						setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
-					else
-						yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d)));
+					//else
+					//	yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d)));
 				}
 
 				b++;

@@ -16,7 +16,7 @@ public class PlayerEntity : MonoBehaviour {
 	}
 	
 	void Update () {
-		if ((int)lastPos.x / Chunk.size != (int)transform.position.x / Chunk.size || (int)lastPos.z / Chunk.size != (int)transform.position.z / Chunk.size) {
+		if (Mathf.FloorToInt (lastPos.x / Chunk.size) != getChunkX () || Mathf.FloorToInt (lastPos.z / Chunk.size) != getChunkZ ()) {
 			reloadChunk ();
 			//reloadChunk (false); TODO
 		}
@@ -62,11 +62,29 @@ public class PlayerEntity : MonoBehaviour {
 	}
 
 	public void reloadChunk () {
-		for (int x = -Main.drawDistance; x < Main.drawDistance; x++) {
-			for (int z = -Main.drawDistance; z < Main.drawDistance; z++) {
-				Chunk chunk = player.map.getChunk ((int)transform.position.x / Chunk.size + x, (int)transform.position.z / Chunk.size + z);
-				Main.main.StartCoroutine (chunk.generate (Main.main));
+		for (int a = 0; a <= Main.drawDistance; a++) {
+			for (int x = -a; x <= a; x++) {
+				for (int z = -a; z <= a; z++) {
+					if (x == -a || x == a || z == -a || z == a) {
+						Chunk chunk = player.map.getChunk (getChunkX () + x, getChunkZ () + z);
+						if (chunk.generated || chunk.generating)
+							continue;
+						if (a == 0) {
+							chunk.generate ();
+							return;
+						}
+						Main.main.StartCoroutine (chunk.generateAsync ());
+					}
+				}
 			}
 		}
+	}
+
+	public int getChunkX () {
+		return Mathf.FloorToInt (transform.position.x / Chunk.size);
+	}
+
+	public int getChunkZ () {
+		return Mathf.FloorToInt (transform.position.z / Chunk.size);
 	}
 }
