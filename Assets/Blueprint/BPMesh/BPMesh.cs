@@ -190,39 +190,66 @@ public class BPMesh {
 	}*/
 
 	//同一位置にある頂点を目的地に移動
+	//
+	//TODO start, endの指定が存在するメソッドの繰り返し処理の条件にある"n < verts.Length"や"n < verts.Count"は、
+	//エラー回避なしでも出来る場合がほとんどであるため、繰り返し処理の負担を避けるためコメントアウトしている。
 	public static void setVert(Vector3[] verts, Vector3 target, Vector3 result) {
-		for (int a = 0; a < verts.Length; a++) {
-			if (verts [a] == target) {
-				verts [a] = result;
-			}
-		}
+		for (int n = 0; n < verts.Length; n++)
+			if (verts [n] == target)
+				verts [n] = result;
+	}
+
+	public static void setVert(Vector3[] verts, Vector3 target, Vector3 result, int start, int end) {
+		for (int n = start; /*n < verts.Length && */n < end; n++)
+			if (verts [n] == target)
+				verts [n] = result;
 	}
 
 	public static IEnumerator setVertAsync(Vector3[] verts, Vector3 target, Vector3 result) {
-		for (int a = 0; a < verts.Length; a++) {
+		for (int n = 0; n < verts.Length; n++) {
 			if (Main.yrCondition ())
 				yield return null;
-			if (verts [a] == target) {
-				verts [a] = result;
-			}
+			if (verts [n] == target)
+				verts [n] = result;
+		}
+	}
+
+	public static IEnumerator setVertAsync(Vector3[] verts, Vector3 target, Vector3 result, int start, int end) {
+		for (int n = start; /*n < verts.Length && */n < end; n++) {
+			if (Main.yrCondition ())
+				yield return null;
+			if (verts [n] == target)
+				verts [n] = result;
 		}
 	}
 
 	public static void setVert(List<Vector3> verts, Vector3 target, Vector3 result) {
-		for (int a = 0; a < verts.Count; a++) {
-			if (verts [a] == target) {
-				verts [a] = result;
-			}
-		}
+		for (int n = 0; n < verts.Count; n++)
+			if (verts [n] == target)
+				verts [n] = result;
+	}
+
+	public static void setVert(List<Vector3> verts, Vector3 target, Vector3 result, int start, int end) {
+		for (int n = start; /*n < verts.Count && */n < end; n++)
+			if (verts [n] == target)
+				verts [n] = result;
 	}
 
 	public static IEnumerator setVertAsync(List<Vector3> verts, Vector3 target, Vector3 result) {
-		for (int a = 0; a < verts.Count; a++) {
+		for (int n = 0; n < verts.Count; n++) {
 			if (Main.yrCondition ())
 				yield return null;
-			if (verts [a] == target) {
-				verts [a] = result;
-			}
+			if (verts [n] == target)
+				verts [n] = result;
+		}
+	}
+
+	public static IEnumerator setVertAsync(List<Vector3> verts, Vector3 target, Vector3 result, int start, int end) {
+		for (int n = start; /*n < verts.Count && */n < end; n++) {
+			if (Main.yrCondition ())
+				yield return null;
+			if (verts [n] == target)
+				verts [n] = result;
 		}
 	}
 
@@ -372,16 +399,12 @@ public class BPMesh {
 		for (int a = 0; a < verts.Length; a++) {
 			Vector3 v0 = verts [a];
 			v0.y = Random.Range (0f, height);
-			//if (behaviour == null)
-				setVert (verts, verts [a], v0);
-			//else
-			//	yield return behaviour.StartCoroutine (setVertAsync (verts, verts [a], v0));
+			setVert (verts, verts [a], v0);
 			for (int b = 0; b < points.Count; b++) {
+				//if (Main.yrCondition ())
+				//	yield return null;
 				if (verts [a].x == points [b].x && verts [a].z == points [b].z) {
-					//if (behaviour == null)
-						setVert (verts, verts [a], points [b]);
-					//else
-					//	yield return behaviour.StartCoroutine (setVertAsync (verts, verts [a], points [b]));
+					setVert (verts, verts [a], points [b]);
 					points.RemoveAt (b);
 					break;
 				}
@@ -391,25 +414,20 @@ public class BPMesh {
 		mesh.vertices = verts;
 
 		for (int a = 0; a < fineness; a++) {
-			yield return null;
 			int b = mesh.vertices.Length;
 
 			mesh = BPMesh.Subdivide_Half (mesh, false);
 
 			verts = mesh.vertices;
 			while (b < verts.Length) {
-				if (Main.yrCondition ())
-					yield return null;
-
 				bool c = true;
 
 				for (int e = 0; e < points.Count; e++) {
+					//if (Main.yrCondition ())
+					//	yield return null;
 					if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
 						c = false;
-						//if (behaviour == null)
-							setVert (verts, verts [b], points [e]);
-						//else
-						//	yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], points [e]));
+						setVert (verts, verts [b], points [e]);
 						points.RemoveAt (e);
 						break;
 					}
@@ -417,10 +435,10 @@ public class BPMesh {
 
 				if (c) {
 					float d = height / Mathf.Pow (2, a + 1);
-					//if (behaviour == null)
-						setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
-					//else
-					//	yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d)));
+					//TODO vertsが多いため絞り込むアルゴリズムを考える必要がある。
+					//verts[b]
+					setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
+					//yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d)));
 				}
 
 				b++;
@@ -432,15 +450,13 @@ public class BPMesh {
 	}
 
 	public static void scale (Vector3[] verts, float scale) {
-		for (int a = 0; a < verts.Length; a++) {
+		for (int a = 0; a < verts.Length; a++)
 			verts [a] *= scale;
-		}
 	}
 
 	public static void scale (Vector3[] verts, Vector3 scale) {
-		for (int a = 0; a < verts.Length; a++) {
+		for (int a = 0; a < verts.Length; a++)
 			verts [a] = new Vector3 (verts [a].x * scale.x, verts [a].y * scale.y, verts [a].z * scale.z);
-		}
 	}
 
 	/*public static Vector3 getIntersectionPoint (Mesh mesh) {
