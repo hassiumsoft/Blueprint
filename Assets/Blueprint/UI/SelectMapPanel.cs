@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
+public class SelectMapPanel : BPPanel, ScrollController.Listener {
 	public static string selectedMap; //最後に選択されたマップ
 	private static bool openMap = false;
 	public AddMapPanel addMapPanel;
@@ -22,13 +22,13 @@ public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
 
 	void Update () {
 		//TODO Window(Panel)のフォーカス機能を追加し、一番手前に出ているWindowでのみ操作が機能するようにする。そのためにはCanvasに各WindowやPanelをまとめる。
-		if (Input.GetKeyDown (KeyCode.Escape) && !addMapPanel.gameObject.activeSelf) {
+		if (Input.GetKeyDown (KeyCode.Escape) && !addMapPanel.gameObject.activeInHierarchy) {
 			show (false);
 		}
 	}
 
 	public void show (bool show) {
-		gameObject.SetActive (show);
+		base.show (show);
 		if (!show) {
 			resetSetting ();
 		}

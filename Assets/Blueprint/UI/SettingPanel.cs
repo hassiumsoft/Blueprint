@@ -1,13 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class SettingPanel : MonoBehaviour {
+public class SettingPanel : BPPanel {
 	public Text drawDistanceText;
 	public Slider drawDistanceSlider;
-
-	void OnEnable () {
-		
-	}
 
 	void Update () {
 		drawDistanceText.text = "描画距離: " + (int)drawDistanceSlider.value;
@@ -26,7 +22,7 @@ public class SettingPanel : MonoBehaviour {
 		if (show) {
 			load ();
 		}
-		gameObject.SetActive (show);
+		base.show (show);
 	}
 
 	public void save () {

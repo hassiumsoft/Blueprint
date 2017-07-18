@@ -3,7 +3,6 @@
 public class MapEntity : MonoBehaviour {
 	MapObject obj;
 	bool initialized = false;
-	Camera p_camera;
 
 	void Start () {
 
@@ -16,10 +15,16 @@ public class MapEntity : MonoBehaviour {
 	}
 
 	public void init (MapObject obj) {
+		if (initialized)
+			return;
 		this.obj = obj;
 
 		transform.position = obj.pos;
 
 		initialized = true;
+	}
+
+	public void Destroy () {
+		Destroy (gameObject);
 	}
 }

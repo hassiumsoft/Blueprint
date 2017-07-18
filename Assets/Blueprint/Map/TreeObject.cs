@@ -8,6 +8,21 @@ public class TreeObject : MapObject {
 	//TODO オブジェクト別にPrefabを作成
 	public static MapEntity objPrefab;
 
+	//TODO
+	//幹
+	//枝
+	//葉
+	//実
+
+	//葉緑体
+	//水分
+	//デンプン
+	//光合成
+
+	//肥料分
+
+	//TODO 二酸化炭素の検出
+
 	public TreeObject (Chunk chunk, Vector3 pos) : base (chunk, pos) {
 	}
 

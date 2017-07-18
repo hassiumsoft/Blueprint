@@ -1,8 +1,3 @@
-﻿using UnityEngine;
-
-public class LoadingMapPanel : MonoBehaviour {
-	
-	public void show (bool show) {
-		gameObject.SetActive (show);
-	}
+﻿public class LoadingMapPanel : BPPanel {
+	//TODO 何もない件
 }

@@ -7,6 +7,7 @@ public class BPCanvas : MonoBehaviour {
 	public SettingPanel settingPanel;
 	public AddMapPanel addMapPanel;
 	public LoadingMapPanel loadingMapPanel;
+	public PausePanel pausePanel;
 
 	void Awake () {
 		bpCanvas = this;
@@ -15,5 +16,6 @@ public class BPCanvas : MonoBehaviour {
 		settingPanel = GetComponentInChildren<SettingPanel> (true);
 		addMapPanel = GetComponentInChildren<AddMapPanel> (true);
 		loadingMapPanel = GetComponentInChildren<LoadingMapPanel> (true);
+		pausePanel = GetComponentInChildren<PausePanel> (true);
 	}
 }

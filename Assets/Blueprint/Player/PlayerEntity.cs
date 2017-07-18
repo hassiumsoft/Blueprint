@@ -16,19 +16,22 @@ public class PlayerEntity : MonoBehaviour {
 	}
 	
 	void Update () {
+		//TODO Player.csと位置を同期する必要がある
+
 		if (Mathf.FloorToInt (lastPos.x / Chunk.size) != getChunkX () || Mathf.FloorToInt (lastPos.z / Chunk.size) != getChunkZ ()) {
 			reloadChunk ();
 			//reloadChunk (false); TODO
 		}
 
-		//TODO メニューを開いていない状態でのみ操作できるようにする
-		if (Input.GetMouseButtonDown (0)) {
-			Vector3 pos = p_camera.ViewportToWorldPoint (Input.mousePosition);
-			Chunk chunk = player.map.getChunk ((int)transform.position.x / Chunk.size, (int)transform.position.z / Chunk.size);
-			MapObject mapobj = new MapObject (chunk, pos);
-			chunk.objs.Add (mapobj);
-			mapobj.generate ();
-			//mapobj.generate (Main.main); TODO
+		if (!BPCanvas.bpCanvas.pausePanel.isShowing ()) {
+			if (Input.GetMouseButtonDown (0)) {
+				Vector3 pos = p_camera.ViewportToWorldPoint (Input.mousePosition);
+				Chunk chunk = player.map.getChunk ((int)transform.position.x / Chunk.size, (int)transform.position.z / Chunk.size);
+				MapObject mapobj = new MapObject (chunk, pos);
+				chunk.objs.Add (mapobj);
+				mapobj.generate ();
+				//mapobj.generate (Main.main); TODO
+			}
 		}
 		if (transform.position.y < Map.ABYSS_HEIGHT) {
 			print (DateTime.Now + " プレイヤー\"" + player.name + "\"が奈落に落ちました");
@@ -48,6 +51,8 @@ public class PlayerEntity : MonoBehaviour {
 	}
 
 	public void init (Player player) {
+		if (initialized)
+			return;
 		this.player = player;
 
 		transform.position = player.pos;
@@ -86,5 +91,10 @@ public class PlayerEntity : MonoBehaviour {
 
 	public int getChunkZ () {
 		return Mathf.FloorToInt (transform.position.z / Chunk.size);
+	}
+
+	public void Destroy () {
+		p_camera.transform.SetParent (null);
+		Destroy (gameObject);
 	}
 }

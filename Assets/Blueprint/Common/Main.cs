@@ -110,9 +110,13 @@ public class Main : MonoBehaviour {
 	}
 
 	void Update () {
-		//ScreenShot
+		//主に操作などを追加する。プレイヤー関連はプレイヤーにある。
 		if (Input.GetKeyDown (KeyCode.F2)) {
 			screenShot ();
+		} else if (Input.GetKeyDown (KeyCode.Escape)) {
+			//TODO 何か画面が出ている場合は同時に反応してしまうのを修正する必要がある
+			if (playingmap != null)
+				BPCanvas.bpCanvas.pausePanel.show (BPCanvas.bpCanvas.pausePanel.a ());
 		}
 	}
 
@@ -186,14 +190,10 @@ public class Main : MonoBehaviour {
 	}
 
 	public static void closeMap () {
-		//TODO
 		if (playingmap != null) {
-			/*BlockRenderer[] renderers = GameObject.FindObjectsOfType<BlockRenderer> ();
-			for (int a = 0; a < renderers.Length; a++) {
-				Object.Destroy (renderers [a].gameObject);
-			}*/
+			playingmap.DestroyAll ();
+			playingmap = null;
 		}
-		playingmap = null;
 	}
 
 	//描画を優先して負荷のかかる処理を行うため、描画状態に応じてyield returnを行う条件を返すメソッド

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class AddMapPanel : MonoBehaviour {
+public class AddMapPanel : BPPanel {
 	public SelectMapPanel selectMapPanel;
 	public InputField mapnameInput;
 
@@ -13,10 +13,6 @@ public class AddMapPanel : MonoBehaviour {
 		if (Input.GetKeyDown (KeyCode.Escape)) {
 			show (false);
 		}
-	}
-
-	public void show (bool show) {
-		gameObject.SetActive (show);
 	}
 
 	public void AddMap () {

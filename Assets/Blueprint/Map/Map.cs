@@ -19,10 +19,10 @@ public class Map : ISerializable {
 	public List<Chunk> chunks; //TODO 後にチャンク呼び出しが遅くなる可能性があるためMapなどで高速化する必要がある
 	public List<Player> players;
 
-	//public long starttime { private set; get; } //マップの開始時間
-	//public long playtime; //マップのプレイ時間
-	//public long time; //マップの時間
-	//TODO 時間の概念は開発中
+	//TODO マップのプレイ時間->プレイヤー毎に記録
+	//public long playtime;
+
+	public long time; //マップの時間
 
 	public Map (string mapname) {
 		this.mapname = mapname;
@@ -103,5 +103,17 @@ public class Map : ISerializable {
 		//TODO 障害物に当たらず地形の標高を取得できるようにする
 
 		return getHeight (x, z);
+	}
+
+	public void DestroyAll () {
+		foreach (PlayerEntity player in GameObject.FindObjectsOfType<PlayerEntity> ()) {
+			player.Destroy ();
+		}
+		foreach (MapEntity entity in GameObject.FindObjectsOfType<MapEntity> ()) {
+			entity.Destroy ();
+		}
+		foreach (ChunkEntity chunk in GameObject.FindObjectsOfType<ChunkEntity> ()) {
+			chunk.Destroy ();
+		}
 	}
 }

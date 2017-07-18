@@ -17,6 +17,8 @@ public class MapObject : ISerializable {
 	//public int id;
 	public Vector3 pos;
 
+	//TODO バウンディングボックス
+
 	public MapObject (Chunk chunk/*, int id*/, Vector3 pos) {
 		this.chunk = chunk;
 		//this.id = id;
