@@ -23,7 +23,7 @@ public class PlayerEntity : MonoBehaviour {
 			//reloadChunk (false); TODO
 		}
 
-		if (!BPCanvas.bpCanvas.pausePanel.isShowing ()) {
+		if (!BPCanvas.pausePanel.isShowing ()) {
 			if (Input.GetMouseButtonDown (0)) {
 				Vector3 pos = p_camera.ViewportToWorldPoint (Input.mousePosition);
 				Chunk chunk = player.map.getChunk ((int)transform.position.x / Chunk.size, (int)transform.position.z / Chunk.size);
@@ -46,6 +46,7 @@ public class PlayerEntity : MonoBehaviour {
 	}
 
 	void OnDestroy () {
+		player.obj = null;
 		p_camera.transform.SetParent (null);//TODO Can't destroy Transform component of 'Main Camera'. If you want to destroy the game object, please call 'Destroy' on the game object instead. Destroying the transform component is not allowed.
 		player.pos = transform.position;
 	}
@@ -72,6 +73,7 @@ public class PlayerEntity : MonoBehaviour {
 				for (int z = -a; z <= a; z++) {
 					if (x == -a || x == a || z == -a || z == a) {
 						Chunk chunk = player.map.getChunk (getChunkX () + x, getChunkZ () + z);
+						chunk.generateObj ();
 						if (chunk.generated || chunk.generating)
 							continue;
 						if (a == 0) {

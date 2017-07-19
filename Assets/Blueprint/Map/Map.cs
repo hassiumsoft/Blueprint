@@ -24,6 +24,8 @@ public class Map : ISerializable {
 
 	public long time; //マップの時間
 
+	//TODO マップに変更があるかどうかの判定（自動セーブ用）
+
 	public Map (string mapname) {
 		this.mapname = mapname;
 		created = DateTime.Now;

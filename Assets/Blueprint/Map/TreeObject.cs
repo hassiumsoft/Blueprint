@@ -6,7 +6,7 @@ using UnityEngine;
 [Serializable]
 public class TreeObject : MapObject {
 	//TODO オブジェクト別にPrefabを作成
-	public static MapEntity objPrefab;
+	//public static MapEntity objPrefab;
 
 	//TODO
 	//幹
@@ -43,9 +43,9 @@ public class TreeObject : MapObject {
 		info.AddValue (KEY_POS, new SerializableVector3 (pos));
 	}*/
 
-	public void generate () {
+	/*public void generate () {
 		if (obj == null) {
 			(obj = GameObject.Instantiate (objPrefab)).init (this);
 		}
-	}
+	}*/
 }

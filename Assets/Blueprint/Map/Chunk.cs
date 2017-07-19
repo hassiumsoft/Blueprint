@@ -54,7 +54,7 @@ public class Chunk : ISerializable {
 	public Map map;
 	public int x { get; }
 	public int z { get; }
-	public bool generated { get; private set; }
+	public bool generated { get; private set; } //地形データなどが生成されているかどうか。実体ではないので注意。
 
 	//地形データ。後にMapObject化して複数の地形を組み合わせられるようにする。
 	public Mesh mesh;
@@ -102,20 +102,29 @@ public class Chunk : ISerializable {
 		info.AddValue (KEY_OBJECTS, objs);
 	}
 
-	private void objInit () {
-		if (obj == null)
-			(obj = new GameObject ("chunk-" + x + "," + z).AddComponent<ChunkEntity> ()).init (this);
+	//Playerなどにもある実体を生成するメソッド。同時に地形データなども生成する
+	public bool generate () {
+		generateObj ();
+
+		return generateChunk ();
 	}
 
-	public bool generate () {
+	//実体を生成するメソッド。地形データなどは生成せず、すでに存在する場合に使用される。
+	public void generateObj () {
+		if (obj == null)
+			(obj = new GameObject ("chunk-" + x + "," + z).AddComponent<ChunkEntity> ()).init (this);
+		else
+			obj.reload ();
+	}
+
+	//地形データなどを生成するメソッド。実体は生成しない。
+	public bool generateChunk () {
 		if (generated)
 			return false;
-		
+
 		stopAsyncGenerating ();
 		generating = true;
 		Debug.Log (DateTime.Now + " チャンク生成開始 X: " + x + " Z: " + z);
-
-		objInit ();
 
 		if (mesh == null) {
 			List<Vector3> points = new List<Vector3> ();
@@ -144,8 +153,6 @@ public class Chunk : ISerializable {
 			}
 
 			mesh = BPMesh.getBPFractalTerrain (fineness, size, height, points);
-
-			Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
 		}
 
 		for (int a = 0; a < objs.Count; a++) {
@@ -154,18 +161,26 @@ public class Chunk : ISerializable {
 
 		generating = false;
 		generated = true;
+		Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
+
+		if (obj != null)
+			obj.reload ();
+
 		return true;
 	}
 
 	public IEnumerator generateAsync () {
+		generateObj ();
 		yield return Main.main.StartCoroutine (routine = a ());
+		if (obj != null)
+			obj.reload ();
 		b ();
 	}
 
 	private IEnumerator a () {
 		if (generated || generating)
 			yield break;
-		
+
 		if (generatingChunks.Count >= max_generation) {
 			generateCancelledChunks.Add (this);
 			yield break;
@@ -179,8 +194,6 @@ public class Chunk : ISerializable {
 		generating = true;
 		generatingChunks.Add (this);
 		Debug.Log (DateTime.Now + " チャンク生成開始(Async) X: " + x + " Z: " + z);
-
-		objInit ();
 
 		if (mesh == null) {
 			List<Vector3> points = new List<Vector3> ();
@@ -293,8 +306,6 @@ public class Chunk : ISerializable {
 
 				mesh = (Mesh)_routine.Current;
 			}
-
-			Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
 		}
 
 		for (int a = 0; a < objs.Count; a++) {
@@ -305,6 +316,7 @@ public class Chunk : ISerializable {
 		generating = false;
 		generatingChunks.Remove (this);
 		generated = true;
+		Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
 	}
 
 	private void stopAsyncGenerating () {

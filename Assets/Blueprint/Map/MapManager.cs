@@ -101,13 +101,6 @@ public class MapManager {
 		Debug.Log (DateTime.Now + " マップをセーブしました");
 	}
 
-	public static IEnumerator saveMapAsync (Map map) {
-		Debug.Log (DateTime.Now + " マップ\"" + map.mapname + "\"をセーブ中...");
-		yield return null;
-		aaa (map);
-		Debug.Log (DateTime.Now + " マップをセーブしました");
-	}
-
 	public static bool deleteMap (string mapname) {
 		reloadDir ();
 		string mapdir = Path.Combine (dir, mapname);

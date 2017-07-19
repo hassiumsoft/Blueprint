@@ -36,6 +36,10 @@ public class Main : MonoBehaviour {
 	public PlayerEntity playerPrefab;
 	public MapEntity objPrefab;
 
+	//TODO ポーズメニューでプレイヤーなどの動きを停止させる。
+	//TODO セーブ中の画面
+	//TODO プレイヤーの位置が戻るバグを修正
+
 	void Awake () {
 		Main.main = this;
 
@@ -106,7 +110,7 @@ public class Main : MonoBehaviour {
 			//TODO 初期設定
 		}*/
 
-		BPCanvas.bpCanvas.titlePanel.show (true);
+		BPCanvas.titlePanel.show (true);
 	}
 
 	void Update () {
@@ -114,9 +118,14 @@ public class Main : MonoBehaviour {
 		if (Input.GetKeyDown (KeyCode.F2)) {
 			screenShot ();
 		} else if (Input.GetKeyDown (KeyCode.Escape)) {
-			//TODO 何か画面が出ている場合は同時に反応してしまうのを修正する必要がある
-			if (playingmap != null)
-				BPCanvas.bpCanvas.pausePanel.show (BPCanvas.bpCanvas.pausePanel.a ());
+			//TODO 新しい画面を追加したときは同時に反応してしまうのを防ぐため、対応させる必要がある。
+			if (playingmap != null) {
+				if (BPCanvas.settingPanel.isShowing ()) {
+					BPCanvas.pausePanel.show (BPCanvas.pausePanel.isShowing ());
+				} else if (!BPCanvas.titleBackPanel.isShowing ()) {
+					BPCanvas.pausePanel.show (!BPCanvas.pausePanel.isShowing ());
+				}
+			}
 		}
 	}
 
@@ -144,22 +153,21 @@ public class Main : MonoBehaviour {
 		if (playingmap != null) {
 			closeMap ();
 		}
-		BPCanvas.bpCanvas.titlePanel.show (false);
-		BPCanvas.bpCanvas.loadingMapPanel.show (true);
+		BPCanvas.titlePanel.show (false);
+		BPCanvas.loadingMapPanel.show (true);
 
 		//一回だとフレーム等のズレによってTipsが表示されない
 		yield return null;
 		yield return null;
 
 		Map map = MapManager.loadMap (mapname);
-		BPCanvas.bpCanvas.loadingMapPanel.show (false);
 		yield return null;
 		if (map == null) {
 			//TODO マップが対応していない場合のダイアログを表示
-
-			BPCanvas.bpCanvas.titlePanel.show (true);
-			BPCanvas.bpCanvas.selectMapPanel.setOpenMap ();
-			BPCanvas.bpCanvas.selectMapPanel.show (true);
+			BPCanvas.loadingMapPanel.show (false);
+			BPCanvas.titlePanel.show (true);
+			BPCanvas.selectMapPanel.setOpenMap ();
+			BPCanvas.selectMapPanel.show (true);
 		} else {
 			playingmap = map;
 
@@ -181,9 +189,7 @@ public class Main : MonoBehaviour {
 				player = playingmap.players [pid];
 			}
 			player.generate ();
-
-			//TODO セーブが長い & マップに変更があったか判定して保存
-			//yield return StartCoroutine (MapManager.saveMapAsync (playingmap));
+			BPCanvas.loadingMapPanel.show (false);
 
 			print (DateTime.Now + " マップを開きました: " + map.mapname);
 		}

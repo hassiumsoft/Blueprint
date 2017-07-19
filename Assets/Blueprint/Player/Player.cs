@@ -24,12 +24,13 @@ public class Player : ISerializable {
 		this.map = map;
 		this.name = name;
 
-		for (int x = -1; x < 1; x++) {
+		/*for (int x = -1; x < 1; x++) {
 			for (int z = -1; z < 1; z++) {
 				Chunk chunk = map.getChunk (getChunkX () + x, getChunkZ () + z);
-				chunk.generate ();
+				chunk.generateChunk ();
 			}
-		}
+		}*/
+		map.getChunk (getChunkX (), getChunkZ ()).generateChunk ();
 
 		if (_pos == null) {
 			respawn ();
