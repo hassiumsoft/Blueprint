@@ -19,6 +19,7 @@ public class Main : MonoBehaviour {
 
 	public static Main main;
 	public static Map playingmap { get; private set; }
+	public static Player masterPlayer { get; private set; }
 	public static string ssdir { get; private set; }
 	public static int min_fps = 15;
 
@@ -149,6 +150,10 @@ public class Main : MonoBehaviour {
 		Process.Start (ssdir);
 	}
 
+	public static void saveSettings () {
+		PlayerPrefs.SetInt (KEY_DRAW_DISTANCE, drawDistance);
+	}
+
 	public static IEnumerator openMap (string mapname) {
 		if (playingmap != null) {
 			closeMap ();
@@ -159,7 +164,7 @@ public class Main : MonoBehaviour {
 		//一回だとフレーム等のズレによってTipsが表示されない
 		yield return null;
 		yield return null;
-
+		yield return null;
 		Map map = MapManager.loadMap (mapname);
 		yield return null;
 		if (map == null) {
@@ -182,13 +187,12 @@ public class Main : MonoBehaviour {
 			//TODO プレイヤーの生成に時間がかかる
 
 			int pid = playingmap.getPlayer ("master");//TODO 仮
-			Player player;
 			if (pid == -1) {
-				playingmap.players.Add (player = new Player (playingmap, "master"));
+				playingmap.players.Add (masterPlayer = new Player (playingmap, "master"));
 			} else {
-				player = playingmap.players [pid];
+				masterPlayer = playingmap.players [pid];
 			}
-			player.generate ();
+			masterPlayer.generate ();
 			BPCanvas.loadingMapPanel.show (false);
 
 			print (DateTime.Now + " マップを開きました: " + map.mapname);
@@ -197,6 +201,8 @@ public class Main : MonoBehaviour {
 
 	public static void closeMap () {
 		if (playingmap != null) {
+			masterPlayer = null;
+
 			playingmap.DestroyAll ();
 			playingmap = null;
 		}

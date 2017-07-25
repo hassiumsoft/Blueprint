@@ -27,6 +27,13 @@ public class SettingPanel : BPPanel {
 
 	public void save () {
 		Main.drawDistance = (int)drawDistanceSlider.value;
+		Main.saveSettings ();
+
+		if (Main.playingmap != null) {
+			//TODO マルチに対応させる必要がある
+			Main.playingmap.DestroyChunkEntities ();
+			Main.masterPlayer.obj.reloadChunk ();
+		}
 
 		show (false);
 	}

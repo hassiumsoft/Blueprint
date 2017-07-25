@@ -87,6 +87,7 @@ public class Chunk : ISerializable {
 		}
 		objs = (List<MapObject>)info.GetValue (KEY_OBJECTS, typeof(List<MapObject>));
 		for (int a = 0; a < objs.Count; a++) {
+			//TODO MapObject.chunkはprivate setにする必要がある
 			objs [a].chunk = this;
 		}
 

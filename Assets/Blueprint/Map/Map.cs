@@ -107,15 +107,20 @@ public class Map : ISerializable {
 		return getHeight (x, z);
 	}
 
-	public void DestroyAll () {
+	public void DestroyPlayerEntities () {
 		foreach (PlayerEntity player in GameObject.FindObjectsOfType<PlayerEntity> ()) {
 			player.Destroy ();
 		}
-		foreach (MapEntity entity in GameObject.FindObjectsOfType<MapEntity> ()) {
-			entity.Destroy ();
-		}
+	}
+
+	public void DestroyChunkEntities () {
 		foreach (ChunkEntity chunk in GameObject.FindObjectsOfType<ChunkEntity> ()) {
 			chunk.Destroy ();
 		}
+	}
+
+	public void DestroyAll () {
+		DestroyPlayerEntities ();
+		DestroyChunkEntities ();
 	}
 }

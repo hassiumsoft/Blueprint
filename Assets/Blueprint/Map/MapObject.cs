@@ -11,11 +11,12 @@ public class MapObject : ISerializable {
 	//TODO オブジェクト別にPrefabを作成
 	public static MapEntity objPrefab;
 
-	public MapEntity obj;
+	public MapEntity obj { get; private set; }
 
+	//TODO private setにする必要があるが、Chunkにて使用されているので改良する必要がある
 	public Chunk chunk;
 	//public int id;
-	public Vector3 pos;
+	public Vector3 pos { get; private set; }
 
 	//TODO バウンディングボックス
 
@@ -42,9 +43,10 @@ public class MapObject : ISerializable {
 		info.AddValue (KEY_POS, new SerializableVector3 (pos));
 	}
 
-	public void moveToChunk (Chunk chunk) {
+	//TODO
+	/*public void moveToChunk (Chunk chunk) {
 		this.chunk = chunk;
-	}
+	}*/
 
 	public void generate () {
 		if (obj == null) {
