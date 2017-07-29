@@ -24,9 +24,6 @@ public class Map : ISerializable {
 	public long time { get; private set; } //マップの時間
 	public bool pause { get; private set; } //ポーズ中か
 
-	//TODO マップのプレイ時間->プレイヤー毎に記録
-	//public long playtime;
-
 	//TODO マップに変更があるかどうかの判定（自動セーブ用）
 
 	public Map (string mapname) {
@@ -79,6 +76,14 @@ public class Map : ISerializable {
 		Chunk chunk = new Chunk (this, chunkx, chunkz);
 		chunks.Add (chunk);
 		return chunk;
+	}
+
+	public static int getChunkX (float x) {
+		return Mathf.FloorToInt (x / Chunk.size);
+	}
+
+	public static int getChunkZ (float z) {
+		return Mathf.FloorToInt (z / Chunk.size);
 	}
 
 	public int getPlayer (string name) {
@@ -139,5 +144,37 @@ public class Map : ISerializable {
 	//時間が経過するメソッド。ticksには経過時間を指定。
 	public void TimePasses (long ticks) {
 		time += ticks;
+	}
+
+	public long getRawHours () {
+		return Mathf.FloorToInt (getRawMinutes () / 60);
+	}
+
+	public long getRawMinutes () {
+		return Mathf.FloorToInt (getRawSeconds () / 60);
+	}
+
+	public long getRawSeconds () {
+		return Mathf.FloorToInt (time / 1000);
+	}
+
+	public long getDays () {
+		return Mathf.FloorToInt (getRawHours () / 24);
+	}
+
+	public long getHours () {
+		return getRawHours () - getDays () * 24;
+	}
+
+	public long getMinutes () {
+		return getRawMinutes () - getRawHours () * 60;
+	}
+
+	public long getSeconds () {
+		return getRawSeconds () - getRawMinutes () * 60;
+	}
+
+	public long getMilliSeconds () {
+		return time - getRawSeconds () * 1000;
 	}
 }

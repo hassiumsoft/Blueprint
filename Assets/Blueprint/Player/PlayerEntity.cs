@@ -10,20 +10,22 @@ public class PlayerEntity : MonoBehaviour {
 	bool initialized = false;
 	Camera p_camera;
 	Vector3 lastPos;
+	Quaternion lastRot;
 
 	void Start () {
 		lastPos = transform.position;
+		lastRot = transform.rotation;
 	}
 	
 	void Update () {
-		if (Mathf.FloorToInt (lastPos.x / Chunk.size) != getChunkX () || Mathf.FloorToInt (lastPos.z / Chunk.size) != getChunkZ ()) {
+		if (Map.getChunkX (lastPos.x) != getChunkX () || Map.getChunkZ (lastPos.z) != getChunkZ ()) {
 			reloadChunk ();
 			//reloadChunk (false); TODO
 		}
 
 		if (!BPCanvas.pausePanel.isShowing ()) {
 			if (Input.GetMouseButtonDown (0)) {
-				//TODO
+				//TODO クリックすると目線の先に空のオブジェクトを置くテスト用機能
 
 				Vector3 pos = p_camera.ViewportToWorldPoint (Input.mousePosition);
 				Chunk chunk = player.map.getChunk ((int)transform.position.x / Chunk.size, (int)transform.position.z / Chunk.size);
@@ -42,6 +44,7 @@ public class PlayerEntity : MonoBehaviour {
 		}
 
 		lastPos = transform.position;
+		lastRot = transform.rotation;
 		player.SyncEntity ();
 	}
 
@@ -57,6 +60,7 @@ public class PlayerEntity : MonoBehaviour {
 		this.player = player;
 
 		lastPos = transform.position = player.pos;
+		lastRot = transform.rotation = player.rot;
 
 		(p_camera = FindObjectOfType<Camera> ()).transform.SetParent (this.transform);
 		p_camera.transform.localPosition = CAMERA_POS;
@@ -98,11 +102,11 @@ public class PlayerEntity : MonoBehaviour {
 	}
 
 	public int getChunkX () {
-		return Mathf.FloorToInt (transform.position.x / Chunk.size);
+		return Map.getChunkX (transform.position.x);
 	}
 
 	public int getChunkZ () {
-		return Mathf.FloorToInt (transform.position.z / Chunk.size);
+		return Map.getChunkZ (transform.position.z);
 	}
 
 	public void Destroy () {

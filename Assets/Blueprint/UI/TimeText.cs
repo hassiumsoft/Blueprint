@@ -12,7 +12,9 @@ public class TimeText : MonoBehaviour {
 		if (Main.playingmap == null) {
 			text.text = "---";
 		} else {
-			text.text = "現在時刻: " + Main.playingmap.time;
+			text.text = "現在時刻: " + (Main.playingmap.getDays () + 1) + "日目 " +
+			Main.playingmap.getHours () + ":" + Main.playingmap.getMinutes () +
+			":" + Main.playingmap.getSeconds ();
 		}
 	}
 }

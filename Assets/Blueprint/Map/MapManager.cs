@@ -76,7 +76,7 @@ public class MapManager {
 				try {
 					map = (Map)formatter.Deserialize (stream);
 				} catch (EndOfStreamException) {
-					Debug.LogError (DateTime.Now + " マップが対応していません: " + mapfilename);
+					//Debug.LogError (DateTime.Now + " マップが対応していません: " + mapname);
 				}
 				stream.Close ();
 				return map;

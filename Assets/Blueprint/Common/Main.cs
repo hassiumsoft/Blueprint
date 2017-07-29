@@ -176,11 +176,12 @@ public class Main : MonoBehaviour {
 		Map map = MapManager.loadMap (mapname);
 		yield return null;
 		if (map == null) {
-			//TODO マップが対応していない場合のダイアログを表示
+			//マップが対応していない
 			BPCanvas.loadingMapPanel.show (false);
 			BPCanvas.titlePanel.show (true);
 			BPCanvas.selectMapPanel.setOpenMap ();
 			BPCanvas.selectMapPanel.show (true);
+			BPCanvas.unsupportedMapPanel.show (true);
 		} else {
 			playingmap = map;
 
