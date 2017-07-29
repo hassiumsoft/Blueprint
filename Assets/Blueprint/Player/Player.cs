@@ -17,8 +17,7 @@ public class Player : ISerializable {
 
 	public Map map;
 	public string name;
-	private Vector3 _pos;
-	public Vector3 pos { get { return obj == null ? _pos : obj.transform.position; } set { teleport (_pos = value); } }
+	public Vector3 pos { get; private set; }
 
 	public Player (Map map, string name) {
 		this.map = map;
@@ -32,7 +31,7 @@ public class Player : ISerializable {
 		}*/
 		map.getChunk (getChunkX (), getChunkZ ()).generateChunk ();
 
-		if (_pos == null) {
+		if (pos == null) {
 			respawn ();
 		}
 	}
@@ -41,7 +40,7 @@ public class Player : ISerializable {
 		if (info == null)
 			throw new ArgumentNullException ("info");
 		name = info.GetString (KEY_NAME);
-		_pos = ((SerializableVector3)info.GetValue (KEY_POS, typeof(SerializableVector3))).toVector3 ();
+		pos = ((SerializableVector3)info.GetValue (KEY_POS, typeof(SerializableVector3))).toVector3 ();
 	}
 
 	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
@@ -63,7 +62,7 @@ public class Player : ISerializable {
 	}
 
 	public void teleport (Vector3 pos) {
-		_pos = pos;
+		this.pos = pos;
 		if (obj != null) {
 			obj.transform.position = pos;
 		}
@@ -75,5 +74,11 @@ public class Player : ISerializable {
 
 	public int getChunkZ () {
 		return obj == null ? Mathf.FloorToInt (pos.z / Chunk.size) : obj.getChunkZ ();
+	}
+
+	public void SyncEntity () {
+		if (obj != null) {
+			pos = obj.transform.position;
+		}
 	}
 }

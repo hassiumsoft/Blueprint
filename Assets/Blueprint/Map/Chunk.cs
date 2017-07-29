@@ -55,6 +55,8 @@ public class Chunk : ISerializable {
 	public int x { get; }
 	public int z { get; }
 	public bool generated { get; private set; } //地形データなどが生成されているかどうか。実体ではないので注意。
+	//TODO アンロード中に時間が経つと進んだ分の時間が経つ。
+	public long lasttime { get; private set; } //最後に読み込まれた時のマップ時間。読み込まれていない状態ではチャンクの処理は行われない。
 
 	//地形データ。後にMapObject化して複数の地形を組み合わせられるようにする。
 	public Mesh mesh;
@@ -73,6 +75,9 @@ public class Chunk : ISerializable {
 		this.x = x;
 		this.z = z;
 		objs = new List<MapObject> ();
+
+		//TODO
+		lasttime = map.time;
 	}
 
 	protected Chunk (SerializationInfo info, StreamingContext context) {
@@ -326,6 +331,13 @@ public class Chunk : ISerializable {
 			generating = false; //TODO 同期による生成中でもfalseにしてしまう可能性がある
 			generatingChunks.Remove (this);
 		}
+	}
+
+	//時間が経過するメソッド。MapやMapObjectと違い経過時間ではなくlong型で新しい時間を指定する。
+	public void TimePasses (long time) {
+		foreach (MapObject obj in objs)
+			obj.TimePasses (time - lasttime);
+		lasttime = time;
 	}
 
 	public static void b () {

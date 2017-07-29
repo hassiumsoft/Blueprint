@@ -6,6 +6,7 @@ public class SerializableMesh {
 	public Matrix4x4[] bindposes;
 	//TODO BlendShape
 	public BoneWeight[] boneWeights;
+	//TODO
 	//public Bounds bounds;
 	public Color[] colors;
 	public Color32[] colors32;

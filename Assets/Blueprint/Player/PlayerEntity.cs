@@ -6,8 +6,7 @@ public class PlayerEntity : MonoBehaviour {
 	public static Vector3 CAMERA_POS = new Vector3 (0f, 2f, -2.5f);
 	public static Vector3 CAMERA_ANGLE = new Vector3 (15f, 0f, 0f);
 
-	Player _player;
-	public Player player { get { return _player; } private set { _player = value; } }
+	public Player player { get; private set; }
 	bool initialized = false;
 	Camera p_camera;
 	Vector3 lastPos;
@@ -27,36 +26,37 @@ public class PlayerEntity : MonoBehaviour {
 				//TODO
 
 				Vector3 pos = p_camera.ViewportToWorldPoint (Input.mousePosition);
-				Chunk chunk = _player.map.getChunk ((int)transform.position.x / Chunk.size, (int)transform.position.z / Chunk.size);
+				Chunk chunk = player.map.getChunk ((int)transform.position.x / Chunk.size, (int)transform.position.z / Chunk.size);
 				MapObject mapobj = new MapObject (chunk, pos);
 				chunk.objs.Add (mapobj);
 				mapobj.generate ();
 			}
 		}
 		if (transform.position.y < Map.ABYSS_HEIGHT) {
-			print (DateTime.Now + " プレイヤー\"" + _player.name + "\"が奈落に落ちました");
-			if (_player == null) {
+			print (DateTime.Now + " プレイヤー\"" + player.name + "\"が奈落に落ちました");
+			if (player == null) {
 				Destroy (gameObject);
 			} else {
-				_player.respawn ();
+				player.respawn ();
 			}
 		}
 
 		lastPos = transform.position;
+		player.SyncEntity ();
 	}
 
 	void OnDestroy () {
-		_player.obj = null;
+		player.SyncEntity ();
+		player.obj = null;
 		p_camera.transform.SetParent (null);//TODO Can't destroy Transform component of 'Main Camera'. If you want to destroy the game object, please call 'Destroy' on the game object instead. Destroying the transform component is not allowed.
-		_player.pos = transform.position;
 	}
 
 	public void init (Player player) {
 		if (initialized)
 			return;
-		this._player = player;
+		this.player = player;
 
-		transform.position = player.pos;
+		lastPos = transform.position = player.pos;
 
 		(p_camera = FindObjectOfType<Camera> ()).transform.SetParent (this.transform);
 		p_camera.transform.localPosition = CAMERA_POS;
@@ -80,7 +80,7 @@ public class PlayerEntity : MonoBehaviour {
 			for (int x = -a; x <= a; x++) {
 				for (int z = -a; z <= a; z++) {
 					if (x == -a || x == a || z == -a || z == a) {
-						Chunk chunk = _player.map.getChunk (cx + x, cz + z);
+						Chunk chunk = player.map.getChunk (cx + x, cz + z);
 						chunk.generateObj ();
 						if (chunk.generated)
 							continue;

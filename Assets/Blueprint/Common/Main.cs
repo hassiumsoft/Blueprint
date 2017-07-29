@@ -37,9 +37,10 @@ public class Main : MonoBehaviour {
 	public PlayerEntity playerPrefab;
 	public MapEntity objPrefab;
 
+	private float lasttick = 0;
+
 	//TODO ポーズメニューでプレイヤーなどの動きを停止させる。
 	//TODO セーブ中の画面
-	//TODO プレイヤーの位置が戻るバグを修正
 
 	void Awake () {
 		Main.main = this;
@@ -128,6 +129,13 @@ public class Main : MonoBehaviour {
 				}
 			}
 		}
+
+		if (playingmap != null && !playingmap.pause) {
+			lasttick += Time.deltaTime * 1000f;
+			int ticks = Mathf.FloorToInt (lasttick);
+			lasttick -= ticks;
+			playingmap.TimePasses (ticks);
+		}
 	}
 
 	public void quit () {
@@ -192,6 +200,7 @@ public class Main : MonoBehaviour {
 			} else {
 				masterPlayer = playingmap.players [pid];
 			}
+			masterPlayer.map = map;
 			masterPlayer.generate ();
 			BPCanvas.loadingMapPanel.show (false);
 

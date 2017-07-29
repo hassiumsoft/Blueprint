@@ -3,9 +3,9 @@ using UnityEngine;
 
 [Serializable]
 public class SerializableVector3 {
-	float x;
-	float y;
-	float z;
+	public float x;
+	public float y;
+	public float z;
 
 	public SerializableVector3 (Vector3 v) {
 		x = v.x;

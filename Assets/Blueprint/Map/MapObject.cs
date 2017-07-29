@@ -53,4 +53,9 @@ public class MapObject : ISerializable {
 			(obj = GameObject.Instantiate (objPrefab)).init (this);
 		}
 	}
+
+	//時間が経過するメソッド。ticksには経過時間を指定。
+	public void TimePasses (long ticks) {
+		//TODO
+	}
 }
