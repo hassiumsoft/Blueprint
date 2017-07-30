@@ -21,7 +21,7 @@ public class Map : ISerializable {
 	public DateTime created { get; }
 	public List<Chunk> chunks; //TODO 後にチャンク呼び出しが遅くなる可能性があるためMapなどで高速化する必要がある
 	public List<Player> players;
-	public long time { get; private set; } //マップの時間
+	public long time { get; private set; } //マップの時間。0時から始まり1tickが1msである。
 	public bool pause { get; private set; } //ポーズ中か
 
 	//TODO マップに変更があるかどうかの判定（自動セーブ用）
@@ -31,7 +31,7 @@ public class Map : ISerializable {
 		created = DateTime.Now;
 		chunks = new List<Chunk> ();
 		players = new List<Player> ();
-		time = 0;
+		time = 6 * 60 * 60000; //朝6時からスタート
 	}
 
 	protected Map (SerializationInfo info, StreamingContext context) {
@@ -98,10 +98,13 @@ public class Map : ISerializable {
 	public Vector3 getPlayerSpawnPoint () {
 		//TODO
 
+		getChunk (0, 0).generateChunk ();
 		return new Vector3 (0, getTerrainHeight (0, 0), 0);
 	}
 
 	public float getHeight (float x, float z) {
+		//TODO 地形が生成されていない場合など上手く行かない場合がある。
+
 		RaycastHit hit;
 		if (Physics.Raycast (new Ray (new Vector3(x, int.MaxValue / 2, z), Vector3.down), out hit, int.MaxValue)) {
 			return hit.point.y;

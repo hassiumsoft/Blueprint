@@ -22,6 +22,7 @@ public class Main : MonoBehaviour {
 	public static Player masterPlayer { get; private set; }
 	public static string ssdir { get; private set; }
 	public static int min_fps = 15;
+	public static float min_reflectionIntensity = 1f / 32;
 
 	private static bool firstStart = false;
 	public static bool isFirstStart {
@@ -32,15 +33,17 @@ public class Main : MonoBehaviour {
 	public static bool isSetupped = false;
 	public static int drawDistance = DEFAULT_DRAW_DISTANCE;
 
+	private float lasttick = 0; //時間を進ませた時の余り
+	public Light sun; //太陽
+
 	//TODO 以下、一時的
 	public Material mat; //Chunk.csにて使用中
 	public PlayerEntity playerPrefab;
 	public MapEntity objPrefab;
 
-	private float lasttick = 0;
-
 	//TODO ポーズメニューでプレイヤーなどの動きを停止させる。
 	//TODO セーブ中の画面
+	//TODO 時間が実時間と同じスピードで進むため、時間を早く進ませたりスキップしたりする機能を追加する必要がある。
 
 	void Awake () {
 		Main.main = this;
@@ -131,10 +134,20 @@ public class Main : MonoBehaviour {
 		}
 
 		if (playingmap != null && !playingmap.pause) {
+			//時間を進ませる
 			lasttick += Time.deltaTime * 1000f;
+
 			int ticks = Mathf.FloorToInt (lasttick);
 			lasttick -= ticks;
 			playingmap.TimePasses (ticks);
+
+			sun.transform.eulerAngles = new Vector3 (0, 0, 0);
+
+			float t = Mathf.Repeat (playingmap.time, 86400000f); //86400000ms = 1日
+			float r = t * 360f / 86400000f - 75f;
+			sun.transform.localEulerAngles = new Vector3 (r, -90f, 0f);
+			float intensity = Mathf.Max (1f - Mathf.Abs ((r + 90f) / 180f - 1f), min_reflectionIntensity);
+			sun.intensity = RenderSettings.ambientIntensity = RenderSettings.reflectionIntensity = intensity;
 		}
 	}
 
