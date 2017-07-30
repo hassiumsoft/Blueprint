@@ -65,6 +65,7 @@ public class PlayerEntity : MonoBehaviour {
 		(p_camera = FindObjectOfType<Camera> ()).transform.SetParent (this.transform);
 		p_camera.transform.localPosition = CAMERA_POS;
 		p_camera.transform.localEulerAngles = CAMERA_ANGLE;
+		p_camera.clearFlags = CameraClearFlags.Skybox;
 
 		reloadChunk ();
 
@@ -110,6 +111,7 @@ public class PlayerEntity : MonoBehaviour {
 	}
 
 	public void Destroy () {
+		p_camera.clearFlags = CameraClearFlags.SolidColor;
 		p_camera.transform.SetParent (null);
 		Destroy (gameObject);
 	}
