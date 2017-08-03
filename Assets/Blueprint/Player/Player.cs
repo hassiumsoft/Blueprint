@@ -32,11 +32,8 @@ public class Player : ISerializable {
 				chunk.generateChunk ();
 			}
 		}*/
-		map.getChunk (getChunkX (), getChunkZ ()).generateChunk ();
 
-		if (pos == null) {
-			respawn ();
-		}
+		respawn ();
 	}
 
 	protected Player (SerializationInfo info, StreamingContext context) {
@@ -66,6 +63,8 @@ public class Player : ISerializable {
 	}
 
 	public void teleport (Vector3 pos) {
+		map.getChunk (Map.getChunkX (pos.x), Map.getChunkZ (pos.z)).generateChunk ();
+
 		this.pos = pos;
 		if (obj != null) {
 			obj.transform.position = pos;

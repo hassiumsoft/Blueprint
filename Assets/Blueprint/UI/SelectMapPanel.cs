@@ -21,7 +21,10 @@ public class SelectMapPanel : BPPanel, ScrollController.Listener {
 
 	void Update () {
 		//TODO Window(Panel)のフォーカス機能を追加し、一番手前に出ているWindowでのみ操作が機能するようにする。そのためにはCanvasに各WindowやPanelをまとめる。
-		if (Input.GetKeyDown (KeyCode.Escape) && !BPCanvas.addMapPanel.gameObject.activeInHierarchy && !BPCanvas.unsupportedMapPanel.gameObject.activeInHierarchy) {
+		if (Input.GetKeyDown (KeyCode.Escape) &&
+		    !BPCanvas.addMapPanel.gameObject.activeInHierarchy &&
+		    !BPCanvas.unsupportedMapPanel.gameObject.activeInHierarchy &&
+		    !BPCanvas.deleteMapPanel.gameObject.activeInHierarchy) {
 			show (false);
 		}
 	}
@@ -82,6 +85,10 @@ public class SelectMapPanel : BPPanel, ScrollController.Listener {
 			show (false);
 			Main.main.StartCoroutine (Main.openMap (SelectMapPanel.selectedMap));
 		}
+	}
+
+	public void DeleteButton () {
+		BPCanvas.deleteMapPanel.show (true);
 	}
 
 	public void Delete () {

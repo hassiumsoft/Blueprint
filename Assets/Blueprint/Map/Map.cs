@@ -10,9 +10,13 @@ public class Map : ISerializable {
 	public const string KEY_CHUNKS = "CHUNKS";
 	public const string KEY_PLAYERS = "PLAYERS";
 	public const string KEY_TIME = "TIME";
+	public const string KEY_SPAWNPOINT = "SPAWNPOINT";
+	public const string KEY_SPAWNRADIUS = "SPAWNRADIUS";
 	public const float ABYSS_HEIGHT = -100f;
 
 	//・複数のマップを同時に読み込んではいけない。
+
+	public static Vector3 DEFAULT_SPAWN = Vector3.zero;
 
 	public string mapname { get; }
 
@@ -23,6 +27,8 @@ public class Map : ISerializable {
 	public List<Player> players;
 	public long time { get; private set; } //マップの時間。0時から始まり1tickが1msである。
 	public bool pause { get; private set; } //ポーズ中か
+	public Vector3 spawnPoint;
+	public float spawnRadius;
 
 	//TODO マップに変更があるかどうかの判定（自動セーブ用）
 
@@ -32,6 +38,8 @@ public class Map : ISerializable {
 		chunks = new List<Chunk> ();
 		players = new List<Player> ();
 		time = 6 * 60 * 60000; //朝6時からスタート
+		spawnPoint = DEFAULT_SPAWN;
+		spawnRadius = Chunk.size / 2;
 	}
 
 	protected Map (SerializationInfo info, StreamingContext context) {
@@ -46,6 +54,8 @@ public class Map : ISerializable {
 		for (int a = 0; a < players.Count; a++)
 			players [a].map = this;
 		time = info.GetInt64 (KEY_TIME);
+		spawnPoint = ((SerializableVector3)info.GetValue (KEY_SPAWNPOINT, typeof(SerializableVector3))).toVector3 ();
+		spawnRadius = info.GetSingle (KEY_SPAWNRADIUS);
 	}
 
 	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
@@ -56,6 +66,8 @@ public class Map : ISerializable {
 		info.AddValue (KEY_CHUNKS, chunks);
 		info.AddValue (KEY_PLAYERS, players);
 		info.AddValue (KEY_TIME, time);
+		info.AddValue (KEY_SPAWNPOINT, new SerializableVector3 (spawnPoint));
+		info.AddValue (KEY_SPAWNRADIUS, spawnRadius);
 	}
 
 	public int getChunkIndex (int chunkx, int chunkz) {
@@ -96,14 +108,13 @@ public class Map : ISerializable {
 	}
 
 	public Vector3 getPlayerSpawnPoint () {
-		//TODO
-
-		getChunk (0, 0).generateChunk ();
-		return new Vector3 (0, getTerrainHeight (0, 0), 0);
+		float x = spawnPoint.x + UnityEngine.Random.Range (-spawnRadius, spawnRadius);
+		float z = spawnPoint.z + UnityEngine.Random.Range (-spawnRadius, spawnRadius);
+		return new Vector3 (x, getTerrainHeight (x, z), z);
 	}
 
 	public float getHeight (float x, float z) {
-		//TODO 地形が生成されていない場合など上手く行かない場合がある。
+		getChunk (Map.getChunkX (x), Map.getChunkZ (z)).generate ();
 
 		RaycastHit hit;
 		if (Physics.Raycast (new Ray (new Vector3(x, int.MaxValue / 2, z), Vector3.down), out hit, int.MaxValue)) {
