@@ -26,11 +26,10 @@ public class PlayerEntity : MonoBehaviour {
 		if (!BPCanvas.pausePanel.isShowing ()) {
 			if (Input.GetMouseButtonDown (0)) {
 				//TODO クリックすると目線の先に空のオブジェクトを置くテスト用機能
-
 				Vector3 pos = p_camera.ViewportToWorldPoint (Input.mousePosition);
-				Chunk chunk = player.map.getChunk ((int)transform.position.x / Chunk.size, (int)transform.position.z / Chunk.size);
-				MapObject mapobj = new MapObject (chunk, pos);
-				chunk.objs.Add (mapobj);
+
+				MapObject mapobj = new MapObject (player.map, pos);
+				player.map.addObject (mapobj);
 				mapobj.generate ();
 			}
 		}

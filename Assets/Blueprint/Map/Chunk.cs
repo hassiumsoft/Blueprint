@@ -91,10 +91,10 @@ public class Chunk : ISerializable {
 			mesh = sMesh.toMesh ();
 		}
 		objs = (List<MapObject>)info.GetValue (KEY_OBJECTS, typeof(List<MapObject>));
-		for (int a = 0; a < objs.Count; a++) {
+		/*for (int a = 0; a < objs.Count; a++) {
 			//TODO MapObject.chunkはprivate setにする必要がある
 			objs [a].chunk = this;
-		}
+		}*/
 
 	}
 
@@ -110,9 +110,9 @@ public class Chunk : ISerializable {
 
 	//Playerなどにもある実体を生成するメソッド。同時に地形データなども生成する
 	public bool generate () {
+		bool r = generateChunk ();
 		generateObj ();
-
-		return generateChunk ();
+		return r;
 	}
 
 	//実体を生成するメソッド。地形データなどは生成せず、すでに存在する場合に使用される。
@@ -121,49 +121,51 @@ public class Chunk : ISerializable {
 			(obj = new GameObject ("chunk-" + x + "," + z).AddComponent<ChunkEntity> ()).init (this);
 		else
 			obj.reload ();
+		
+		for (int a = 0; a < objs.Count; a++) {
+			objs [a].generate ();
+		}
 	}
 
 	//地形データなどを生成するメソッド。実体は生成しない。
 	public bool generateChunk () {
-		if (generated)
+		if (generated || generating)
 			return false;
 
 		stopAsyncGenerating ();
 		generating = true;
 		Debug.Log (DateTime.Now + " チャンク生成開始 X: " + x + " Z: " + z);
 
-		if (mesh == null) {
-			List<Vector3> points = new List<Vector3> ();
-			for (int x2 = x - 1; x2 <= x + 1; x2++) {
-				for (int z2 = z - 1; z2 <= z + 1; z2++) {
-					if (x2 != x || z2 != z) {
-						Chunk chunk = map.getChunk (x2, z2);
-						if (chunk.generating)
-							chunk.stopAsyncGenerating ();
+		//地形の生成
+		List<Vector3> points = new List<Vector3> ();
+		for (int x2 = x - 1; x2 <= x + 1; x2++) {
+			for (int z2 = z - 1; z2 <= z + 1; z2++) {
+				if (x2 != x || z2 != z) {
+					Chunk chunk = map.getChunk (x2, z2);
+					if (chunk.generating)
+						chunk.stopAsyncGenerating ();
 
-						if (chunk.generated && chunk.mesh != null) {
-							List<Vector3> verts1 = new List<Vector3> (chunk.mesh.vertices);
-							for (int b = 0; b < verts1.Count;) {
-								if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size)
-									b++;
-								else
-									verts1.RemoveAt (b);
-							}
-							Vector3[] verts2 = verts1.ToArray ();
-							for (int c = 0; c < verts2.Length; c++)
-								verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
-							points.AddRange (verts2);
+					if (chunk.generated && chunk.mesh != null) {
+						List<Vector3> verts1 = new List<Vector3> (chunk.mesh.vertices);
+						for (int b = 0; b < verts1.Count;) {
+							if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size)
+								b++;
+							else
+								verts1.RemoveAt (b);
 						}
+						Vector3[] verts2 = verts1.ToArray ();
+						for (int c = 0; c < verts2.Length; c++)
+							verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
+						points.AddRange (verts2);
 					}
 				}
 			}
-
-			mesh = BPMesh.getBPFractalTerrain (fineness, size, height, points);
 		}
 
-		for (int a = 0; a < objs.Count; a++) {
-			objs [a].generate ();
-		}
+		mesh = BPMesh.getBPFractalTerrain (fineness, size, height, points);
+
+		//森林の生成
+		generateForest ();
 
 		generating = false;
 		generated = true;
@@ -176,10 +178,8 @@ public class Chunk : ISerializable {
 	}
 
 	public IEnumerator generateAsync () {
-		generateObj ();
 		yield return Main.main.StartCoroutine (routine = a ());
-		if (obj != null)
-			obj.reload ();
+		generateObj ();
 		b ();
 	}
 
@@ -201,128 +201,128 @@ public class Chunk : ISerializable {
 		generatingChunks.Add (this);
 		Debug.Log (DateTime.Now + " チャンク生成開始(Async) X: " + x + " Z: " + z);
 
-		if (mesh == null) {
-			List<Vector3> points = new List<Vector3> ();
-			bool e_u = false;
-			bool e_d = false;
-			bool e_l = false;
-			bool e_r = false;
-			bool e_ul = false;
-			bool e_ur = false;
-			bool e_dr = false;
-			bool e_dl = false;
-			while (!(e_u && e_d && e_l && e_r && e_ul && e_ur && e_dr && e_dl)) {
-				int x2 = x;
-				int z2 = z;
-				if (!e_u)
-					z2 = z + 1;
-				else if (!e_d)
-					z2 = z - 1;
-				else if (!e_l)
-					x2 = x - 1;
-				else if (!e_r)
-					x2 = x + 1;
-				else if (!e_ul) {
-					x2 = x - 1;
-					z2 = z + 1;
-				} else if (!e_ur) {
-					x2 = x + 1;
-					z2 = z + 1;
-				} else if (!e_dr) {
-					x2 = x + 1;
-					z2 = z - 1;
-				} else if (!e_dl) {
-					x2 = x - 1;
-					z2 = z - 1;
+		//地形の生成
+		List<Vector3> points = new List<Vector3> ();
+		bool e_u = false;
+		bool e_d = false;
+		bool e_l = false;
+		bool e_r = false;
+		bool e_ul = false;
+		bool e_ur = false;
+		bool e_dr = false;
+		bool e_dl = false;
+		while (!(e_u && e_d && e_l && e_r && e_ul && e_ur && e_dr && e_dl)) {
+			int x2 = x;
+			int z2 = z;
+			if (!e_u)
+				z2 = z + 1;
+			else if (!e_d)
+				z2 = z - 1;
+			else if (!e_l)
+				x2 = x - 1;
+			else if (!e_r)
+				x2 = x + 1;
+			else if (!e_ul) {
+				x2 = x - 1;
+				z2 = z + 1;
+			} else if (!e_ur) {
+				x2 = x + 1;
+				z2 = z + 1;
+			} else if (!e_dr) {
+				x2 = x + 1;
+				z2 = z - 1;
+			} else if (!e_dl) {
+				x2 = x - 1;
+				z2 = z - 1;
+			}
+
+			Chunk chunk = map.getChunk (x2, z2);
+			if (chunk.generating) {
+				//他の未生成だったチャンクが待機中に生成を開始している場合があるため、
+				//自チャンクの生成を後に回し最初からやり直す。
+				generating = false;
+				generatingChunks.Remove (this);
+				generateCancelledChunks.Add (this);
+				Debug.Log (DateTime.Now + " チャンク生成中止(13) X: " + x + " Z: " + z);
+				yield break;
+			}
+
+			if (chunk.generated) {
+				List<Vector3> verts1 = new List<Vector3> (chunk.mesh.vertices);
+				for (int b = 0; b < verts1.Count;) {
+					//ゲームプレイに影響を与えない程度にマップ生成を優先する
+					//if (Main.yrCondition ())
+					//	yield return null;
+					if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size)
+						b++;
+					else
+						verts1.RemoveAt (b);
 				}
-
-				Chunk chunk = map.getChunk (x2, z2);
-				if (chunk.generating) {
-					//他の未生成だったチャンクが待機中に生成を開始している場合があるため、
-					//自チャンクの生成を後に回し最初からやり直す。
-					generating = false;
-					generatingChunks.Remove (this);
-					generateCancelledChunks.Add (this);
-					Debug.Log (DateTime.Now + " チャンク生成中止(13) X: " + x + " Z: " + z);
-					yield break;
+				Vector3[] verts2 = verts1.ToArray ();
+				for (int c = 0; c < verts2.Length; c++) {
+					//if (Main.yrCondition ())
+					//	yield return null;
+					verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
 				}
+				points.AddRange (verts2);
 
-				if (chunk.generated) {
-					List<Vector3> verts1 = new List<Vector3> (chunk.mesh.vertices);
-					for (int b = 0; b < verts1.Count;) {
-						//ゲームプレイに影響を与えない程度にマップ生成を優先する
-						//if (Main.yrCondition ())
-						//	yield return null;
-						if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size)
-							b++;
-						else
-							verts1.RemoveAt (b);
-					}
-					Vector3[] verts2 = verts1.ToArray ();
-					for (int c = 0; c < verts2.Length; c++) {
-						//if (Main.yrCondition ())
-						//	yield return null;
-						verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
-					}
-					points.AddRange (verts2);
-
-					if (!e_u) {
-						e_ul = true;
-						e_ur = true;
-					} else if (!e_d) {
-						e_dl = true;
-						e_dr = true;
-					} else if (!e_l) {
-						e_ul = true;
-						e_dl = true;
-					} else if (!e_r) {
-						e_ur = true;
-						e_dr = true;
-					}
-				}
-
-				if (!e_u)
-					e_u = true;
-				else if (!e_d)
-					e_d = true;
-				else if (!e_l)
-					e_l = true;
-				else if (!e_r)
-					e_r = true;
-				else if (!e_ul)
+				if (!e_u) {
 					e_ul = true;
-				else if (!e_ur)
 					e_ur = true;
-				else if (!e_dr)
-					e_dr = true;
-				else if (!e_dl)
+				} else if (!e_d) {
 					e_dl = true;
-			}
-
-			IEnumerator _routine = BPMesh.getBPFractalTerrainAsync (Main.main, fineness, size, height, points);
-			yield return Main.main.StartCoroutine (_routine);
-			if (_routine.Current is Mesh) {
-				if (stopGenerating) {
-					Debug.Log (DateTime.Now + " チャンク生成中止(14) X: " + x + " Z: " + z);
-					generating = false;
-					stopGenerating = false;
-					generatingChunks.Remove (this);
-					yield break;
+					e_dr = true;
+				} else if (!e_l) {
+					e_ul = true;
+					e_dl = true;
+				} else if (!e_r) {
+					e_ur = true;
+					e_dr = true;
 				}
-
-				mesh = (Mesh)_routine.Current;
 			}
+
+			if (!e_u)
+				e_u = true;
+			else if (!e_d)
+				e_d = true;
+			else if (!e_l)
+				e_l = true;
+			else if (!e_r)
+				e_r = true;
+			else if (!e_ul)
+				e_ul = true;
+			else if (!e_ur)
+				e_ur = true;
+			else if (!e_dr)
+				e_dr = true;
+			else if (!e_dl)
+				e_dl = true;
 		}
 
-		for (int a = 0; a < objs.Count; a++) {
-			objs [a].generate ();
-			//objs [a].generate (behaviour); TODO
+		IEnumerator _routine = BPMesh.getBPFractalTerrainAsync (Main.main, fineness, size, height, points);
+		yield return Main.main.StartCoroutine (_routine);
+		if (_routine.Current is Mesh) {
+			if (stopGenerating) {
+				Debug.Log (DateTime.Now + " チャンク生成中止(14) X: " + x + " Z: " + z);
+				generating = false;
+				stopGenerating = false;
+				generatingChunks.Remove (this);
+				yield break;
+			}
+
+			mesh = (Mesh)_routine.Current;
 		}
+
+		//森林の生成
+		generateForest ();
 
 		generating = false;
 		generatingChunks.Remove (this);
 		generated = true;
 		Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
+
+		if (obj != null)
+			obj.reload ();
 	}
 
 	private void stopAsyncGenerating () {
@@ -331,6 +331,12 @@ public class Chunk : ISerializable {
 			generating = false; //TODO 同期による生成中でもfalseにしてしまう可能性がある
 			generatingChunks.Remove (this);
 		}
+	}
+
+	private void generateForest () {
+		float px = x * size + UnityEngine.Random.Range (0, size);
+		float pz = z * size + UnityEngine.Random.Range (0, size);
+		map.addObject (new TreeObject (map, new Vector3 (px, map.getTerrainHeight (px, pz), pz)));
 	}
 
 	//時間が経過するメソッド。MapやMapObjectと違い経過時間ではなくlong型で新しい時間を指定する。

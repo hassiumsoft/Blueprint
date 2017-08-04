@@ -98,6 +98,14 @@ public class Map : ISerializable {
 		return Mathf.FloorToInt (z / Chunk.size);
 	}
 
+	public void addObject (MapObject obj) {
+		getChunk (getChunkX (obj.pos.x), getChunkZ (obj.pos.z)).objs.Add (obj);
+	}
+
+	public bool removeObject (MapObject obj) {
+		return getChunk (getChunkX (obj.pos.x), getChunkZ (obj.pos.z)).objs.Remove (obj);
+	}
+
 	public int getPlayer (string name) {
 		for (int n = 0; n < players.Count; n++) {
 			if (players [n].name.ToLower ().Equals (name.ToLower ())) {
@@ -125,9 +133,25 @@ public class Map : ISerializable {
 	}
 
 	public float getTerrainHeight (float x, float z) {
-		//TODO 障害物に当たらず地形の標高を取得できるようにする
+		float r = ABYSS_HEIGHT;
 
-		return getHeight (x, z);
+		Chunk chunk = getChunk (Map.getChunkX (x), Map.getChunkZ (z));
+		if (chunk.generateChunk ()) {
+			GameObject obj = new GameObject ("terrain-" + x + "," + z);
+			obj.transform.position = new Vector3 (chunk.x * Chunk.size, -32768f, chunk.z * Chunk.size);
+			MeshFilter meshfilter = obj.AddComponent<MeshFilter> ();
+			MeshCollider meshcollider = obj.AddComponent<MeshCollider> ();
+			meshcollider.sharedMesh = meshfilter.sharedMesh = chunk.mesh;
+
+			RaycastHit hit;
+			if (Physics.Raycast (new Ray (new Vector3 (x, int.MaxValue / 2, z), Vector3.down), out hit, int.MaxValue)) {
+				r = hit.point.y + 32768f;
+			}
+
+			GameObject.Destroy (obj);
+		}
+
+		return r;
 	}
 
 	public void DestroyPlayerEntities () {

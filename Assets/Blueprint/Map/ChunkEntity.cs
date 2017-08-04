@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 
 public class ChunkEntity : MonoBehaviour {
-	Chunk _chunk;
-	public Chunk chunk { get { return _chunk; } private set { _chunk = value; } }
+	public Chunk chunk { get; private set; }
 	bool initialized = false;
 
 	void Start () {
@@ -16,15 +15,15 @@ public class ChunkEntity : MonoBehaviour {
 	public void init (Chunk chunk) {
 		//if (initialized)
 		//	return;
-		this._chunk = chunk;
+		this.chunk = chunk;
 
 		initialized = true;
 	}
 
 	public void reload () {
-		if (gameObject == null || _chunk == null)
+		if (gameObject == null || chunk == null)
 			return;
-		transform.position = new Vector3 (_chunk.x * Chunk.size, 0, _chunk.z * Chunk.size);
+		transform.position = new Vector3 (chunk.x * Chunk.size, 0, chunk.z * Chunk.size);
 
 		MeshFilter meshfilter = GetComponent<MeshFilter> ();
 		MeshRenderer meshrenderer = GetComponent<MeshRenderer> ();
@@ -43,7 +42,7 @@ public class ChunkEntity : MonoBehaviour {
 			box.center = new Vector3 (Chunk.size / 2, -0.5f, Chunk.size / 2);
 			box.size = new Vector3 (Chunk.size, 1, Chunk.size);*/
 		
-		meshcollider.sharedMesh = meshfilter.sharedMesh = _chunk.mesh;
+		meshcollider.sharedMesh = meshfilter.sharedMesh = chunk.mesh;
 	}
 
 	public void Destroy () {

@@ -23,7 +23,7 @@ public class TreeObject : MapObject {
 
 	//TODO 二酸化炭素の検出
 
-	public TreeObject (Chunk chunk, Vector3 pos) : base (chunk, pos) {
+	public TreeObject (Map map, Vector3 pos) : base (map, pos) {
 	}
 
 	/*protected TreeObject (SerializationInfo info, StreamingContext context) {

@@ -39,7 +39,6 @@ public class Main : MonoBehaviour {
 	//TODO 以下、一時的
 	public Material mat; //Chunk.csにて使用中
 	public PlayerEntity playerPrefab;
-	public MapEntity objPrefab;
 
 	//TODO ポーズメニューでプレイヤーなどの動きを停止させる。
 	//TODO セーブ中の画面
@@ -105,7 +104,6 @@ public class Main : MonoBehaviour {
 		drawDistance = PlayerPrefs.GetInt (KEY_DRAW_DISTANCE, DEFAULT_DRAW_DISTANCE);
 
 		Player.playerPrefab = playerPrefab;
-		MapObject.objPrefab = objPrefab;
 	}
 
 	void Start () {
