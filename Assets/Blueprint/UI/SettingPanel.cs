@@ -32,7 +32,7 @@ public class SettingPanel : BPPanel {
 		if (Main.playingmap != null) {
 			//TODO マルチに対応させる必要がある
 			Main.playingmap.DestroyChunkEntities ();
-			Main.masterPlayer.obj.reloadChunk ();
+			Main.masterPlayer.playerEntity.reloadChunk ();
 		}
 
 		show (false);

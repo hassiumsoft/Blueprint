@@ -6,69 +6,101 @@ using UnityEngine;
 [Serializable]
 public class MapObject : ISerializable {
 	public const string KEY_MAP = "MAP";
-	public const string KEY_ID = "ID";
 	public const string KEY_POS = "POS";
+	public const string KEY_ROTATION = "ROT";
 
-	public MapEntity obj { get; private set; }
+	public virtual MapEntity entity { get; protected set; }
 
-	public Map map { get; private set; }
-	//public int id;
-	public Vector3 pos { get; private set; }
+	[NonSerialized]
+	private Chunk _chunk;
+	public Chunk chunk {
+		get { return _chunk; }
+		set {
+			if (_chunk == null)
+				_chunk = value;
+		}
+	}
+	public Vector3 pos { get; protected set; }
+	public Quaternion rot { get; protected set; }
 
 	//TODO バウンディングボックス
 
-	public MapObject (Map map/*, int id*/, Vector3 pos) {
-		this.map = map;
-		//this.id = id;
+	public MapObject (Map map) : this (map, new Vector3 (), new Quaternion ()) {
+	}
+
+	public MapObject (Map map, Vector3 pos) : this (map, pos, new Quaternion ()) {
+	}
+	
+	public MapObject (Map map, Vector3 pos, Quaternion rot) {
+		chunk = map.getChunk (Map.getChunkX (pos.x), Map.getChunkZ (pos.z));
 		this.pos = pos;
+		this.rot = rot;
 	}
 
 	protected MapObject (SerializationInfo info, StreamingContext context) {
 		if (info == null)
 			throw new ArgumentNullException ("info");
-		map = (Map)info.GetValue (KEY_MAP, typeof(Map));
-		//id = info.GetInt32 (KEY_ID);
 		pos = ((SerializableVector3)info.GetValue (KEY_POS, typeof(SerializableVector3))).toVector3 ();
+		rot = ((SerializableQuaternion)info.GetValue (KEY_ROTATION, typeof(SerializableQuaternion))).toQuaternion ();
 	}
 
 	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
 		if (info == null)
 			throw new ArgumentNullException ("info");
-		info.AddValue (KEY_MAP, map);
-		//info.AddValue (KEY_ID, id);
-		if (obj != null) {
-			pos = obj.transform.position;
-		}
+		SyncFromEntity ();
 		info.AddValue (KEY_POS, new SerializableVector3 (pos));
+		info.AddValue (KEY_ROTATION, new SerializableQuaternion (rot));
 	}
 
-	//TODO
-	/*public void moveToChunk (Chunk chunk) {
-		this.chunk = chunk;
-	}*/
+	public virtual void moved () {
+		_chunk = chunk.map.getChunk (Map.getChunkX (pos.x), Map.getChunkZ (pos.z));
+	}
 
-	public void generate () {
-		if (obj == null)
-			(obj = new MapEntity ()).init (this);
-
-		if (obj == null)
-			(obj = new GameObject ("mapobj-" + getChunkX () + "," + getChunkZ ()).AddComponent<MapEntity> ()).init (this);
+	public virtual void generate () {
+		if (entity == null)
+			(entity = new GameObject ("mapobj-" + getChunkX () + "," + getChunkZ ()).AddComponent<MapEntity> ()).init (this);
 		else
-			obj.reload ();
+			reloadEntity ();
 	}
 
-	public int getChunkX () {
-		//return obj == null ? Map.getChunkX (pos.x) : obj.getChunkX (); 動く場合
-		return Map.getChunkX (pos.x);
+	public virtual void teleport (Vector3 pos) {
+		this.pos = pos;
+		if (entity != null) {
+			entity.transform.position = pos;
+		}
 	}
 
-	public int getChunkZ () {
-		//return obj == null ? Map.getChunkZ (pos.z) : obj.getChunkZ (); 動く場合
-		return Map.getChunkZ (pos.z);
+	public virtual void teleport (Vector3 pos, Quaternion rot) {
+		teleport (pos);
+		this.rot = rot;
+		if (entity != null) {
+			entity.transform.rotation = rot;
+		}
+	}
+
+	public virtual void reloadEntity () {
+		if (entity == null)
+			return;
+		entity.transform.position = pos;
+		entity.transform.rotation = rot;
+	}
+
+	public virtual int getChunkX () {
+		return entity == null ? Map.getChunkX (pos.x) : Map.getChunkX (entity.transform.position.x);
+	}
+
+	public virtual int getChunkZ () {
+		return entity == null ? Map.getChunkZ (pos.z) : Map.getChunkZ (entity.transform.position.z);
 	}
 
 	//時間が経過するメソッド。ticksには経過時間を指定。
-	public void TimePasses (long ticks) {
-		//TODO
+	public virtual void TimePasses (long ticks) {
+	}
+
+	public virtual void SyncFromEntity () {
+		if (entity != null) {
+			pos = entity.transform.position;
+			rot = entity.transform.rotation;
+		}
 	}
 }

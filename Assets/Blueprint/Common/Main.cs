@@ -36,13 +36,13 @@ public class Main : MonoBehaviour {
 	private float lasttick = 0; //時間を進ませた時の余り
 	public Light sun; //太陽
 
-	//TODO 以下、一時的
-	public Material mat; //Chunk.csにて使用中
-	public PlayerEntity playerPrefab;
-
 	//TODO ポーズメニューでプレイヤーなどの動きを停止させる。
 	//TODO セーブ中の画面
 	//TODO 時間が実時間と同じスピードで進むため、時間を早く進ませたりスキップしたりする機能を追加する必要がある。
+
+	//TODO 以下、一時的
+	public Material mat; //Chunk.csにて使用中
+	public PlayerEntity playerPrefab;
 
 	void Awake () {
 		Main.main = this;
@@ -160,7 +160,7 @@ public class Main : MonoBehaviour {
 	public void screenShot () {
 		Directory.CreateDirectory (ssdir);
 		string fileName = DateTime.Now.Ticks + ".png";
-		Application.CaptureScreenshot (Path.Combine (ssdir, fileName));
+		ScreenCapture.CaptureScreenshot (Path.Combine (ssdir, fileName));
 		print (DateTime.Now + " ScreenShot: " + fileName);
 	}
 
@@ -196,14 +196,6 @@ public class Main : MonoBehaviour {
 		} else {
 			playingmap = map;
 
-			/*GameObject test = new GameObject ();
-			Mesh test_m = BPMesh.getCylinder (1, 3, 3, true);
-			test_m.RecalculateBounds ();
-			test_m.RecalculateNormals ();
-			test.AddComponent<MeshFilter> ().sharedMesh = test_m;
-			test.AddComponent<MeshRenderer> ();
-			test.AddComponent<MeshCollider> ();*/
-
 			//TODO プレイヤーの生成に時間がかかる
 
 			int pid = playingmap.getPlayer ("master");//TODO 仮
@@ -212,7 +204,6 @@ public class Main : MonoBehaviour {
 			} else {
 				masterPlayer = playingmap.players [pid];
 			}
-			masterPlayer.map = map;
 			masterPlayer.generate ();
 			BPCanvas.loadingMapPanel.show (false);
 

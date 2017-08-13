@@ -5,9 +5,6 @@ using UnityEngine;
 
 [Serializable]
 public class TreeObject : MapObject {
-	//TODO オブジェクト別にPrefabを作成
-	//public static MapEntity objPrefab;
-
 	//TODO
 	//幹
 	//枝
@@ -23,29 +20,28 @@ public class TreeObject : MapObject {
 
 	//TODO 二酸化炭素の検出
 
-	public TreeObject (Map map, Vector3 pos) : base (map, pos) {
+	public TreeObject (Map map, Vector3 pos, Quaternion rot) : base (map, pos, rot) {
 	}
 
-	/*protected TreeObject (SerializationInfo info, StreamingContext context) {
-		if (info == null)
-			throw new ArgumentNullException ("info");
-		//id = info.GetInt32 (KEY_ID);
-		pos = ((SerializableVector3)info.GetValue (KEY_POS, typeof(SerializableVector3))).toVector3 ();
+	protected TreeObject (SerializationInfo info, StreamingContext context) : base (info, context) {
+		//name = info.GetString (KEY_NAME);
 	}
 
-	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
-		if (info == null)
-			throw new ArgumentNullException ("info");
-		//info.AddValue (KEY_ID, id);
-		if (obj != null) {
-			pos = obj.transform.position;
-		}
-		info.AddValue (KEY_POS, new SerializableVector3 (pos));
-	}*/
+	public override void GetObjectData (SerializationInfo info, StreamingContext context) {
+		base.GetObjectData (info, context);
+		//info.AddValue (KEY_NAME, name);
+	}
 
-	/*public void generate () {
-		if (obj == null) {
-			(obj = GameObject.Instantiate (objPrefab)).init (this);
-		}
-	}*/
+	public override void generate () {
+		if (entity == null)
+			(entity = new GameObject ("tree-" + getChunkX () + "," + getChunkZ ()).AddComponent<MapEntity> ()).init (this);
+		else
+			reloadEntity ();
+	}
+
+	public override void reloadEntity () {
+		if (entity == null)
+			return;
+		base.reloadEntity ();
+	}
 }

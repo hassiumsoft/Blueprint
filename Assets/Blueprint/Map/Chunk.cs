@@ -49,9 +49,16 @@ public class Chunk : ISerializable {
 	//生成中のチャンクが完了するとキャンセルされたチャンクが動き出す。
 	private static List<Chunk> generateCancelledChunks = new List<Chunk> ();
 
-	public ChunkEntity obj;
-
-	public Map map;
+	public ChunkEntity entity;
+	[NonSerialized]
+	private Map _map;
+	public Map map {
+		get { return _map; }
+		set {
+			if (_map == null)
+				_map = value;
+		}
+	}
 	public int x { get; }
 	public int z { get; }
 	public bool generated { get; private set; } //地形データなどが生成されているかどうか。実体ではないので注意。
@@ -91,11 +98,8 @@ public class Chunk : ISerializable {
 			mesh = sMesh.toMesh ();
 		}
 		objs = (List<MapObject>)info.GetValue (KEY_OBJECTS, typeof(List<MapObject>));
-		/*for (int a = 0; a < objs.Count; a++) {
-			//TODO MapObject.chunkはprivate setにする必要がある
+		for (int a = 0; a < objs.Count; a++)
 			objs [a].chunk = this;
-		}*/
-
 	}
 
 	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
@@ -117,10 +121,10 @@ public class Chunk : ISerializable {
 
 	//実体を生成するメソッド。地形データなどは生成せず、すでに存在する場合に使用される。
 	public void generateObj () {
-		if (obj == null)
-			(obj = new GameObject ("chunk-" + x + "," + z).AddComponent<ChunkEntity> ()).init (this);
+		if (entity == null)
+			(entity = new GameObject ("chunk-" + x + "," + z).AddComponent<ChunkEntity> ()).init (this);
 		else
-			obj.reload ();
+			reloadEntity ();
 		
 		for (int a = 0; a < objs.Count; a++) {
 			objs [a].generate ();
@@ -171,8 +175,7 @@ public class Chunk : ISerializable {
 		generated = true;
 		Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
 
-		if (obj != null)
-			obj.reload ();
+		reloadEntity ();
 
 		return true;
 	}
@@ -321,8 +324,7 @@ public class Chunk : ISerializable {
 		generated = true;
 		Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
 
-		if (obj != null)
-			obj.reload ();
+		reloadEntity ();
 	}
 
 	private void stopAsyncGenerating () {
@@ -336,7 +338,7 @@ public class Chunk : ISerializable {
 	private void generateForest () {
 		float px = x * size + UnityEngine.Random.Range (0, size);
 		float pz = z * size + UnityEngine.Random.Range (0, size);
-		map.addObject (new TreeObject (map, new Vector3 (px, map.getTerrainHeight (px, pz), pz)));
+		map.addObject (new TreeObject (map, new Vector3 (px, map.getTerrainHeight (px, pz), pz), Quaternion.Euler (new Vector3 (0, UnityEngine.Random.Range (0f, 360f)))));
 	}
 
 	//時間が経過するメソッド。MapやMapObjectと違い経過時間ではなくlong型で新しい時間を指定する。
@@ -368,5 +370,26 @@ public class Chunk : ISerializable {
 		foreach (Chunk chunk in generatingChunks) {
 			chunk.stopAsyncGenerating ();
 		}
+	}
+
+	public void reloadEntity () {
+		if (entity == null)
+			return;
+		entity.transform.position = new Vector3 (x * size, 0, z * size);
+
+		MeshFilter meshfilter = entity.GetComponent<MeshFilter> ();
+		MeshRenderer meshrenderer = entity.GetComponent<MeshRenderer> ();
+		MeshCollider meshcollider = entity.GetComponent<MeshCollider> ();
+		if (meshfilter == null)
+			meshfilter = entity.gameObject.AddComponent<MeshFilter> ();
+		if (meshrenderer == null)
+			meshrenderer = entity.gameObject.AddComponent<MeshRenderer> ();
+		if (meshcollider == null)
+			meshcollider = entity.gameObject.AddComponent<MeshCollider> ();
+
+		meshrenderer.material = Main.main.mat; //TODO 一時的。（Main.csも確認）
+		//meshcollider.convex = true;
+
+		meshcollider.sharedMesh = meshfilter.sharedMesh = mesh;
 	}
 }

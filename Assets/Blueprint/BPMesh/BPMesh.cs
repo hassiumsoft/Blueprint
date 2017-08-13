@@ -7,16 +7,61 @@ public class BPMesh {
 	//メッシュの複製
 	public static Mesh mesh_copy (Mesh mesh) {
 		Mesh m = new Mesh ();
+
 		m.vertices = mesh.vertices;
 		m.uv = mesh.uv;
+		m.uv2 = mesh.uv2;
+		m.uv3 = mesh.uv3;
+		m.uv4 = mesh.uv4;
 		m.triangles = mesh.triangles;
+
+		m.bindposes = mesh.bindposes;
+		m.boneWeights = mesh.boneWeights;
+		m.bounds = mesh.bounds;
+		m.colors = mesh.colors;
+		m.colors32 = mesh.colors32;
+		m.normals = mesh.normals;
+		m.subMeshCount = mesh.subMeshCount;
+		m.tangents = mesh.tangents;
 
 		return m;
 	}
 
-	//TODO フラット面とスムーズ面を判別して細分化
+	//メッシュの結合（ソリッドは判定しない）
+	public static Mesh mesh_combine (Mesh target, Mesh source) {
+		Mesh m = new Mesh ();
+
+		List<Vector3> a = new List<Vector3> (target.vertices);
+		a.AddRange (source.vertices);
+		m.vertices = a.ToArray ();
+
+		List<Vector2> b = new List<Vector2> (target.uv);
+		b.AddRange (source.uv);
+		m.uv = b.ToArray ();
+
+		b = new List<Vector2> (target.uv2);
+		b.AddRange (source.uv2);
+		m.uv2 = b.ToArray ();
+
+		b = new List<Vector2> (target.uv3);
+		b.AddRange (source.uv3);
+		m.uv3 = b.ToArray ();
+
+		b = new List<Vector2> (target.uv4);
+		b.AddRange (source.uv4);
+		m.uv4 = b.ToArray ();
+
+		List<int> c = new List<int> (target.triangles);
+		int[] d = source.triangles;
+		foreach (int e in d)
+			c.Add (e + target.triangles.Length);
+		m.triangles = c.ToArray ();
+
+		return m;
+	}
 
 	//メッシュの細分化
+	//TODO フラット面とスムーズ面を判別して細分化
 	public static Mesh Subdivide_Half (Mesh mesh, bool smooth) {
 		Mesh m = mesh_copy (mesh);
 
@@ -333,12 +378,15 @@ public class BPMesh {
 	//pointsに点群データを入れておくことで、X,Zが一致する点のYを点群データに合わせることが出来る。
 	//チャンクに対応した地形を生成する際に使用する。
 	public static Mesh getBPFractalTerrain (int fineness, float size, float height, List<Vector3> points) {
+		//地形用の四角形メッシュを作成
 		Mesh mesh = getQuadTerrain ();
 
+		//チャンクサイズに拡大
 		Vector3[] verts = mesh.vertices;
+		for (int a = 0; a < verts.Length; a++)
+			verts [a] = verts [a] *= size;
 
-		scale (verts, size);
-
+		//隣接するチャンクの地形に合わせ頂点を変位させる
 		for (int a = 0; a < verts.Length; a++) {
 			Vector3 v0 = verts [a];
 			v0.y = Random.Range (0f, height);
@@ -351,9 +399,9 @@ public class BPMesh {
 				}
 			}
 		}
-
 		mesh.vertices = verts;
 
+		//細分化を行い、上記と同じように隣接するチャンクの地形に合わせ頂点を変位させる
 		for (int a = 0; a < fineness; a++) {
 			int b = mesh.vertices.Length;
 
@@ -394,7 +442,8 @@ public class BPMesh {
 
 		Vector3[] verts = mesh.vertices;
 
-		scale (verts, size);
+		for (int a = 0; a < verts.Length; a++)
+			verts [a] = verts [a] *= size;
 
 		for (int a = 0; a < verts.Length; a++) {
 			Vector3 v0 = verts [a];
@@ -449,24 +498,19 @@ public class BPMesh {
 		yield return mesh;
 	}
 
-	public static void scale (Vector3[] verts, float scale) {
+	public static void mesh_move (Vector3[] verts, Vector3 vec) {
 		for (int a = 0; a < verts.Length; a++)
-			verts [a] *= scale;
+			verts [a] = new Vector3 (verts [a].x + vec.x, verts [a].y + vec.y, verts [a].z + vec.z);
 	}
 
-	public static void scale (Vector3[] verts, Vector3 scale) {
+	public static void mesh_rotate (Vector3[] verts, Quaternion rot) {
 		for (int a = 0; a < verts.Length; a++)
-			verts [a] = new Vector3 (verts [a].x * scale.x, verts [a].y * scale.y, verts [a].z * scale.z);
+			verts [a] = rot * verts [a];
 	}
-
+	
 	/*public static Vector3 getIntersectionPoint (Mesh mesh) {
 
 		return Vector3.zero;
-	}
-
-	public static Mesh Combine (Mesh mesh1, Mesh mesh2) {
-
-		return null;
 	}
 
 	public static Mesh Quad2Tri (Mesh mesh) {
@@ -475,121 +519,87 @@ public class BPMesh {
 		return m;
 	}*/
 
-	//TODO 円柱等のロール？とキャップを分けて作成できるようにする
-
-	//円柱を作成
-	public static Mesh getCylinder (float radius, float height, int verts, bool smooth) {
+	//円を生成
+	public static Mesh circle (float radius, int verts) {
 		Mesh mesh = new Mesh ();
-		if (smooth) {
-			Vector3[] vs = new Vector3[verts * 10];
-			Vector2[] uv = new Vector2[verts * 10];
-			int[] tris = new int[verts * 12];
+		Vector3[] vs = new Vector3[verts * 3];
+		Vector2[] uv = new Vector2[verts * 3];
+		int[] tris = new int[verts * 3];
 
-			for (int a = 0; a < verts; a++) {
-				float x1 = Mathf.Cos (Mathf.PI * 2 / verts * a) * radius;
-				float z1 = Mathf.Sin (Mathf.PI * 2 / verts * a) * radius;
-				float x2 = Mathf.Cos (Mathf.PI * 2 / verts * (a + 1)) * radius;
-				float z2 = Mathf.Sin (Mathf.PI * 2 / verts * (a + 1)) * radius;
-				vs [a] = new Vector3 (0, 0, 0);
-				vs [verts + a] = new Vector3 (x1, 0, z1);
-				vs [verts * 2 + a] = new Vector3 (x2, 0, z2);
-				vs [verts * 3 + a] = new Vector3 (x1, 0, z1);
-				vs [verts * 4 + a] = new Vector3 (x1, height, z1);
-				vs [verts * 5 + a] = new Vector3 (x2, height, z2);
-				vs [verts * 6 + a] = new Vector3 (x2, 0, z2);
-				vs [verts * 7 + a] = new Vector3 (x1, height, z1);
-				vs [verts * 8 + a] = new Vector3 (0, height, 0);
-				vs [verts * 9 + a] = new Vector3 (x2, height, z2);
+		for (int a = 0; a < verts; a++) {
+			vs [a] = new Vector3 (Mathf.Cos (Mathf.PI * 2 / verts * a) * radius, 0, Mathf.Sin (Mathf.PI * 2 / verts * a) * radius);
+			vs [verts + a] = new Vector3 (0, 0, 0);
+			vs [verts * 2 + a] = new Vector3 (Mathf.Cos (Mathf.PI * 2 / verts * (a + 1)) * radius, 0, Mathf.Sin (Mathf.PI * 2 / verts * (a + 1)) * radius);
 
-				uv [a] = new Vector2 ();
-				uv [verts + a] = new Vector2 ();//TODO
-				uv [verts * 2 + a] = new Vector2 ();
-				uv [verts * 3 + a] = new Vector2 ();
-				uv [verts * 4 + a] = new Vector2 ();
-				uv [verts * 5 + a] = new Vector2 ();
-				uv [verts * 6 + a] = new Vector2 ();
-				uv [verts * 7 + a] = new Vector2 ();
-				uv [verts * 8 + a] = new Vector2 ();
-				uv [verts * 9 + a] = new Vector2 ();
+			uv [a] = new Vector2 ();
+			uv [verts + a] = new Vector2 ();//TODO
+			uv [verts * 2 + a] = new Vector2 ();
 
-				tris [a * 12] = a;
-				tris [a * 12 + 1] = verts + a;
-				tris [a * 12 + 2] = verts * 2 + a;
-
-				tris [a * 12 + 3] = verts * 3 + a;
-				tris [a * 12 + 4] = verts * 4 + a;
-				tris [a * 12 + 5] = verts * 5 + a;
-
-				tris [a * 12 + 6] = verts * 3 + a;
-				tris [a * 12 + 7] = verts * 5 + a;
-				tris [a * 12 + 8] = verts * 6 + a;
-
-				tris [a * 12 + 9] = verts * 7 + a;
-				tris [a * 12 + 10] = verts * 8 + a;
-				tris [a * 12 + 11] = verts * 9 + a;
-			}
-
-			mesh.vertices = vs;
-			mesh.uv = uv;
-			mesh.triangles = tris;
-		} else {
-			Vector3[] vs = new Vector3[verts * 12];
-			Vector2[] uv = new Vector2[verts * 12];
-			int[] tris = new int[verts * 12];
-
-			for (int a = 0; a < verts; a++) {
-				float x1 = Mathf.Cos (Mathf.PI * 2 / verts * a) * radius;
-				float z1 = Mathf.Sin (Mathf.PI * 2 / verts * a) * radius;
-				float x2 = Mathf.Cos (Mathf.PI * 2 / verts * (a + 1)) * radius;
-				float z2 = Mathf.Sin (Mathf.PI * 2 / verts * (a + 1)) * radius;
-				vs [a] = new Vector3 (0, 0, 0);
-				vs [verts + a] = new Vector3 (x1, 0, z1);
-				vs [verts * 2 + a] = new Vector3 (x2, 0, z2);
-				vs [verts * 3 + a] = new Vector3 (x1, 0, z1);
-				vs [verts * 4 + a] = new Vector3 (x1, height, z1);
-				vs [verts * 5 + a] = new Vector3 (x2, height, z2);
-				vs [verts * 6 + a] = new Vector3 (x1, 0, z1);
-				vs [verts * 7 + a] = new Vector3 (x2, height, z2);
-				vs [verts * 8 + a] = new Vector3 (x2, 0, z2);
-				vs [verts * 9 + a] = new Vector3 (x1, height, z1);
-				vs [verts * 10 + a] = new Vector3 (0, height, 0);
-				vs [verts * 11 + a] = new Vector3 (x2, height, z2);
-
-				uv [a] = new Vector2 ();
-				uv [verts + a] = new Vector2 ();//TODO
-				uv [verts * 2 + a] = new Vector2 ();
-				uv [verts * 3 + a] = new Vector2 ();
-				uv [verts * 4 + a] = new Vector2 ();
-				uv [verts * 5 + a] = new Vector2 ();
-				uv [verts * 6 + a] = new Vector2 ();
-				uv [verts * 7 + a] = new Vector2 ();
-				uv [verts * 8 + a] = new Vector2 ();
-				uv [verts * 9 + a] = new Vector2 ();
-				uv [verts * 10 + a] = new Vector2 ();
-				uv [verts * 11 + a] = new Vector2 ();
-
-				tris [a * 12] = a;
-				tris [a * 12 + 1] = verts + a;
-				tris [a * 12 + 2] = verts * 2 + a;
-
-				tris [a * 12 + 3] = verts * 3 + a;
-				tris [a * 12 + 4] = verts * 4 + a;
-				tris [a * 12 + 5] = verts * 5 + a;
-
-				tris [a * 12 + 6] = verts * 6 + a;
-				tris [a * 12 + 7] = verts * 7 + a;
-				tris [a * 12 + 8] = verts * 8 + a;
-
-				tris [a * 12 + 9] = verts * 9 + a;
-				tris [a * 12 + 10] = verts * 10 + a;
-				tris [a * 12 + 11] = verts * 11 + a;
-			}
+			tris [a * 3] = a;
+			tris [a * 3 + 1] = verts + a;
+			tris [a * 3 + 2] = verts * 2 + a;
 
 			mesh.vertices = vs;
 			mesh.uv = uv;
 			mesh.triangles = tris;
 		}
 		return mesh;
+	}
+
+	//円筒を生成
+	public static Mesh cylindrical_surface (float radius, float height, int verts) {
+		Mesh mesh = new Mesh ();
+		Vector3[] vs = new Vector3[verts * 6];
+		Vector2[] uv = new Vector2[verts * 6];
+		int[] tris = new int[verts * 6];
+
+		for (int a = 0; a < verts; a++) {
+			float x1 = Mathf.Cos (Mathf.PI * 2 / verts * a) * radius;
+			float z1 = Mathf.Sin (Mathf.PI * 2 / verts * a) * radius;
+			float x2 = Mathf.Cos (Mathf.PI * 2 / verts * (a + 1)) * radius;
+			float z2 = Mathf.Sin (Mathf.PI * 2 / verts * (a + 1)) * radius;
+			vs [a] = new Vector3 (x1, 0, z1);
+			vs [verts + a] = new Vector3 (x1, height, z1);
+			vs [verts * 2 + a] = new Vector3 (x2, height, z2);
+			vs [verts * 3 + a] = new Vector3 (x1, 0, z1);
+			vs [verts * 4 + a] = new Vector3 (x2, height, z2);
+			vs [verts * 5 + a] = new Vector3 (x2, 0, z2);
+
+			uv [a] = new Vector2 ();
+			uv [verts + a] = new Vector2 ();//TODO
+			uv [verts * 2 + a] = new Vector2 ();
+			uv [verts * 3 + a] = new Vector2 ();
+			uv [verts * 4 + a] = new Vector2 ();
+			uv [verts * 5 + a] = new Vector2 ();
+
+			tris [a * 6] = a;
+			tris [a * 6 + 1] = verts + a;
+			tris [a * 6 + 2] = verts * 2 + a;
+
+			tris [a * 6 + 3] = verts * 3 + a;
+			tris [a * 6 + 4] = verts * 4 + a;
+			tris [a * 6 + 5] = verts * 5 + a;
+
+			mesh.vertices = vs;
+			mesh.uv = uv;
+			mesh.triangles = tris;
+		}
+		return mesh;
+	}
+
+	//円柱（角柱）を作成
+	//TODO スムーズ面に対応させる
+	public static Mesh cylinder (float radius, float height, int verts) {
+		Mesh floor = circle (radius, verts);
+		Mesh ceil = circle (radius, verts);
+		Vector3[] v = floor.vertices;
+		mesh_rotate (v, Quaternion.Euler (-180, 0, 0));
+		floor.vertices = v;
+		v = ceil.vertices;
+		mesh_move (v, Vector3.up * height);
+		ceil.vertices = v;
+
+		return mesh_combine (mesh_combine (floor, ceil), cylindrical_surface (radius, height, verts));
 	}
 
 	//円錐を作成
@@ -640,13 +650,18 @@ public class BPMesh {
 
 	//TODO 樹木を生成
 	public static Mesh generateTree (float radius) {
+		Mesh mesh = new Mesh ();
 
-		return null;
+		return mesh;
 	}
 
-	public static Mesh[] VoronoiBreak (Mesh mesh) {
+	/*public static Mesh[] VoronoiBreak (Mesh mesh) {
 		//TODO ボロノイ図状に崩壊
 		return null;
-	}
+	}*/
 
+	//TODO ソリッドモデルの結合
+	/*public static Mesh SolidCombine (Mesh target, Mesh source) {
+
+	}*/
 }

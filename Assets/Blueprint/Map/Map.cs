@@ -23,8 +23,8 @@ public class Map : ISerializable {
 	//TODO マップの作成日時を読み込むにはマップを読み込まなければいけないため、
 	//マップのチャンクやプレイヤーデータを除いた基本情報のみを読み込んだり出来るようにする。
 	public DateTime created { get; }
-	public List<Chunk> chunks; //TODO 後にチャンク呼び出しが遅くなる可能性があるためMapなどで高速化する必要がある
-	public List<Player> players;
+	public List<Chunk> chunks { get; private set; } //TODO 後にチャンク呼び出しが遅くなる可能性があるためHashMapなどで高速化する必要がある
+	public List<Player> players { get; private set; }
 	public long time { get; private set; } //マップの時間。0時から始まり1tickが1msである。
 	public bool pause { get; private set; } //ポーズ中か
 	public Vector3 spawnPoint;
@@ -52,7 +52,7 @@ public class Map : ISerializable {
 			chunks [a].map = this;
 		players = (List<Player>)info.GetValue (KEY_PLAYERS, typeof(List<Player>));
 		for (int a = 0; a < players.Count; a++)
-			players [a].map = this;
+			players [a].chunk = getChunk (players [a].getChunkX (), players [a].getChunkZ ());
 		time = info.GetInt64 (KEY_TIME);
 		spawnPoint = ((SerializableVector3)info.GetValue (KEY_SPAWNPOINT, typeof(SerializableVector3))).toVector3 ();
 		spawnRadius = info.GetSingle (KEY_SPAWNRADIUS);
@@ -99,7 +99,8 @@ public class Map : ISerializable {
 	}
 
 	public void addObject (MapObject obj) {
-		getChunk (getChunkX (obj.pos.x), getChunkZ (obj.pos.z)).objs.Add (obj);
+		if (!(obj is Player))
+			getChunk (getChunkX (obj.pos.x), getChunkZ (obj.pos.z)).objs.Add (obj);
 	}
 
 	public bool removeObject (MapObject obj) {
@@ -136,20 +137,22 @@ public class Map : ISerializable {
 		float r = ABYSS_HEIGHT;
 
 		Chunk chunk = getChunk (Map.getChunkX (x), Map.getChunkZ (z));
-		if (chunk.generateChunk ()) {
-			GameObject obj = new GameObject ("terrain-" + x + "," + z);
-			obj.transform.position = new Vector3 (chunk.x * Chunk.size, -32768f, chunk.z * Chunk.size);
-			MeshFilter meshfilter = obj.AddComponent<MeshFilter> ();
-			MeshCollider meshcollider = obj.AddComponent<MeshCollider> ();
-			meshcollider.sharedMesh = meshfilter.sharedMesh = chunk.mesh;
+		chunk.generateChunk ();
 
-			RaycastHit hit;
-			if (Physics.Raycast (new Ray (new Vector3 (x, int.MaxValue / 2, z), Vector3.down), out hit, int.MaxValue)) {
-				r = hit.point.y + 32768f;
-			}
+		float w = 32768f;
 
-			GameObject.Destroy (obj);
+		GameObject obj = new GameObject ("terrain-" + x + "," + z);
+		obj.transform.position = new Vector3 (chunk.x * Chunk.size, -w, chunk.z * Chunk.size);
+		MeshFilter meshfilter = obj.AddComponent<MeshFilter> ();
+		MeshCollider meshcollider = obj.AddComponent<MeshCollider> ();
+		meshcollider.sharedMesh = meshfilter.sharedMesh = chunk.mesh;
+
+		RaycastHit hit;
+		if (Physics.Raycast (new Ray (new Vector3 (x, ABYSS_HEIGHT, z), Vector3.down), out hit, int.MaxValue)) {
+			r = hit.point.y + w;
 		}
+
+		GameObject.Destroy (obj);
 
 		return r;
 	}

@@ -1,41 +1,20 @@
 ﻿using UnityEngine;
 
 public class MapEntity : MonoBehaviour {
-	public MapObject obj { get; private set; }
+	public virtual MapObject obj { get; protected set; }
 	bool initialized = false;
 
 	void Start () {
-		reload ();
+		obj.reloadEntity ();
 	}
 
-	void Update () {
-		//TODO 移動する物体は移動したときにチャンクを移動するようにする
-		//obj.moveToChunk(chunk);
-	}
-
-	public void init (MapObject obj) {
-		//if (initialized)
-		//	return;
+	public virtual void init (MapObject obj) {
 		this.obj = obj;
-
 		initialized = true;
 	}
 
-	public void reload () {
-		if (gameObject == null || obj == null)
-			return;
-		transform.position = obj.pos;
-	}
-
-	public int getChunkX () {
-		return Map.getChunkX (transform.position.x);
-	}
-
-	public int getChunkZ () {
-		return Map.getChunkZ (transform.position.z);
-	}
-
-	public void Destroy () {
+	public virtual void Destroy () {
+		obj.SyncFromEntity ();
 		Destroy (gameObject);
 	}
 }
