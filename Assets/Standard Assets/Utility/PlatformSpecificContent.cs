@@ -1,10 +1,12 @@
-﻿using UnityEngine;
-
-namespace UnitySampleAssets.Utility
-{
-
+using System;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
+#endif
+
+namespace UnityStandardAssets.Utility
+{
+#if UNITY_EDITOR
 
     [ExecuteInEditMode]
 #endif
@@ -16,9 +18,10 @@ using UnityEditor;
             Mobile
         }
 
-        [SerializeField] private BuildTargetGroup showOnlyOn;
-        [SerializeField] private GameObject[] content = new GameObject[0];
-        [SerializeField] private bool childrenOfThisObject;
+        [SerializeField] private BuildTargetGroup m_BuildTargetGroup;
+        [SerializeField] private GameObject[] m_Content = new GameObject[0];
+        [SerializeField] private MonoBehaviour[] m_MonoBehaviours = new MonoBehaviour[0];
+        [SerializeField] private bool m_ChildrenOfThisObject;
 
 #if !UNITY_EDITOR
 	void OnEnable()
@@ -31,27 +34,28 @@ using UnityEditor;
 
         private void OnEnable()
         {
-            EditorUserBuildSettings.activeBuildTargetChanged += Update;
             EditorApplication.update += Update;
+            EditorUserBuildSettings.activeBuildTargetChanged += Update;
         }
+
 
         private void OnDisable()
         {
-            EditorUserBuildSettings.activeBuildTargetChanged -= Update;
             EditorApplication.update -= Update;
+            EditorUserBuildSettings.activeBuildTargetChanged -= Update;
         }
 
         private void Update()
         {
             CheckEnableContent();
-
         }
 #endif
 
+
         private void CheckEnableContent()
         {
-#if (UNITY_IPHONE || UNITY_ANDROID || UNITY_WP8 || UNITY_BLACKBERRY )
-		if (showOnlyOn == BuildTargetGroup.Mobile)
+#if (UNITY_IPHONE || UNITY_ANDROID || UNITY_WP8 || UNITY_TIZEN || UNITY_STV )
+		if (m_BuildTargetGroup == BuildTargetGroup.Mobile)
 		{
 			EnableContent(true);
 		} else {
@@ -59,8 +63,8 @@ using UnityEditor;
 		}
 #endif
 
-#if !(UNITY_IPHONE || UNITY_ANDROID || UNITY_WP8 || UNITY_BLACKBERRY )
-            if (showOnlyOn == BuildTargetGroup.Mobile)
+#if !(UNITY_IPHONE || UNITY_ANDROID || UNITY_WP8 || UNITY_TIZEN || UNITY_STV )
+            if (m_BuildTargetGroup == BuildTargetGroup.Mobile)
             {
                 EnableContent(false);
             }
@@ -69,14 +73,14 @@ using UnityEditor;
                 EnableContent(true);
             }
 #endif
-
         }
+
 
         private void EnableContent(bool enabled)
         {
-            if (content.Length > 0)
+            if (m_Content.Length > 0)
             {
-                foreach (var g in content)
+                foreach (var g in m_Content)
                 {
                     if (g != null)
                     {
@@ -84,15 +88,20 @@ using UnityEditor;
                     }
                 }
             }
-            if (childrenOfThisObject)
+            if (m_ChildrenOfThisObject)
             {
                 foreach (Transform t in transform)
                 {
                     t.gameObject.SetActive(enabled);
                 }
             }
+            if (m_MonoBehaviours.Length > 0)
+            {
+                foreach (var monoBehaviour in m_MonoBehaviours)
+                {
+                    monoBehaviour.enabled = enabled;
+                }
+            }
         }
     }
 }
-
-

@@ -1,18 +1,19 @@
+using System;
 using UnityEngine;
-using UnitySampleAssets.CrossPlatformInput;
+using UnityStandardAssets.CrossPlatformInput;
 
-namespace UnitySampleAssets.Vehicles.Car
+namespace UnityStandardAssets.Vehicles.Car
 {
     [RequireComponent(typeof (CarController))]
     public class CarUserControl : MonoBehaviour
     {
-        private CarController car; // the car controller we want to use
+        private CarController m_Car; // the car controller we want to use
 
 
         private void Awake()
         {
             // get the car controller
-            car = GetComponent<CarController>();
+            m_Car = GetComponent<CarController>();
         }
 
 
@@ -21,7 +22,12 @@ namespace UnitySampleAssets.Vehicles.Car
             // pass the input to the car!
             float h = CrossPlatformInputManager.GetAxis("Horizontal");
             float v = CrossPlatformInputManager.GetAxis("Vertical");
-            car.Move(h, v);
+#if !MOBILE_INPUT
+            float handbrake = CrossPlatformInputManager.GetAxis("Jump");
+            m_Car.Move(h, v, v, handbrake);
+#else
+            m_Car.Move(h, v, v, 0f);
+#endif
         }
     }
 }

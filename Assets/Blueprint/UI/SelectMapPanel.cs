@@ -1,15 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
+public class SelectMapPanel : BPPanel, ScrollController.Listener {
 	public static string selectedMap; //最後に選択されたマップ
 	private static bool openMap = false;
-	public AddMapPanel addMapPanel;
 	public Button addMapButton;
 	public Button selectMapButton;
 	public Button deleteMapButton;
 	public Text selectButtonText;
 	public Text mapNameText;
+	public Text mapCreatedText; //TODO 未使用
 	public Image mapImage; //TODO 未使用
 	public ScrollController sc;
 	string[] mapList = new string[0];
@@ -21,13 +21,16 @@ public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
 
 	void Update () {
 		//TODO Window(Panel)のフォーカス機能を追加し、一番手前に出ているWindowでのみ操作が機能するようにする。そのためにはCanvasに各WindowやPanelをまとめる。
-		if (Input.GetKeyDown (KeyCode.Escape) && !addMapPanel.gameObject.activeSelf) {
+		if (Input.GetKeyDown (KeyCode.Escape) &&
+		    !BPCanvas.addMapPanel.gameObject.activeInHierarchy &&
+		    !BPCanvas.unsupportedMapPanel.gameObject.activeInHierarchy &&
+		    !BPCanvas.deleteMapPanel.gameObject.activeInHierarchy) {
 			show (false);
 		}
 	}
 
 	public void show (bool show) {
-		gameObject.SetActive (show);
+		base.show (show);
 		if (!show) {
 			resetSetting ();
 		}
@@ -56,6 +59,7 @@ public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
 		bool interactable = sc.n != -1;
 		deleteMapButton.interactable = selectMapButton.interactable = interactable;
 		mapNameText.text = interactable ? mapList [sc.n] : "";
+		//mapCreatedText.text = interactable ? mapList [sc.n] : "";
 	}
 
 	public void reloadContents () {
@@ -75,12 +79,16 @@ public class SelectMapPanel : MonoBehaviour, ScrollController.Listener {
 	public void OKButton () {
 		selectedMap = sc.n == -1 ? null : mapList [sc.n];
 		sc.n = -1;
+		a ();
 
 		if (openMap) {
-			Main.openMap (MapManager.loadMap (SelectMapPanel.selectedMap));
+			show (false);
+			Main.main.StartCoroutine (Main.openMap (SelectMapPanel.selectedMap));
 		}
+	}
 
-		show (false);
+	public void DeleteButton () {
+		BPCanvas.deleteMapPanel.show (true);
 	}
 
 	public void Delete () {
