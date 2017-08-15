@@ -336,6 +336,9 @@ public class Chunk : ISerializable {
 	}
 
 	private void generateForest () {
+		if (UnityEngine.Random.Range (0, 4) != 0)
+			return;
+		
 		float px = x * size + UnityEngine.Random.Range (0, size);
 		float pz = z * size + UnityEngine.Random.Range (0, size);
 		map.addObject (new TreeObject (map, new Vector3 (px, map.getTerrainHeight (px, pz), pz), Quaternion.Euler (new Vector3 (0, UnityEngine.Random.Range (0f, 360f)))));

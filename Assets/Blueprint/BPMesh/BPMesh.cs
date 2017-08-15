@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class BPMesh {
 
+	//TODO スムーズ面対応
+
 	//メッシュの複製
 	public static Mesh mesh_copy (Mesh mesh) {
 		Mesh m = new Mesh ();
@@ -184,7 +186,7 @@ public class BPMesh {
 		return m;
 	}
 
-	//TODO フラット面化
+	//TODO フラット面化メソッド
 
 	/*public static Vector3 getNormal (Mesh mesh, int v) {
 		Vector3? a = null;
@@ -527,13 +529,16 @@ public class BPMesh {
 		int[] tris = new int[verts * 3];
 
 		for (int a = 0; a < verts; a++) {
-			vs [a] = new Vector3 (Mathf.Cos (Mathf.PI * 2 / verts * a) * radius, 0, Mathf.Sin (Mathf.PI * 2 / verts * a) * radius);
-			vs [verts + a] = new Vector3 (0, 0, 0);
-			vs [verts * 2 + a] = new Vector3 (Mathf.Cos (Mathf.PI * 2 / verts * (a + 1)) * radius, 0, Mathf.Sin (Mathf.PI * 2 / verts * (a + 1)) * radius);
+			float w1 = (float)a / verts;
+			float w2 = (float)(a + 1) / verts;
 
-			uv [a] = new Vector2 ();
-			uv [verts + a] = new Vector2 ();//TODO
-			uv [verts * 2 + a] = new Vector2 ();
+			vs [a] = new Vector3 (Mathf.Cos (Mathf.PI * 2 * w1) * radius, 0, Mathf.Sin (Mathf.PI * 2 * w1) * radius);
+			vs [verts + a] = new Vector3 (0, 0, 0);
+			vs [verts * 2 + a] = new Vector3 (Mathf.Cos (Mathf.PI * 2 * w2) * radius, 0, Mathf.Sin (Mathf.PI * 2 * w2) * radius);
+
+			uv [a] = new Vector2 (w1, 0);
+			uv [verts + a] = new Vector2 (0, 1);
+			uv [verts * 2 + a] = new Vector2 (w2, 0);
 
 			tris [a * 3] = a;
 			tris [a * 3 + 1] = verts + a;
@@ -547,30 +552,37 @@ public class BPMesh {
 	}
 
 	//円筒を生成
-	public static Mesh cylindrical_surface (float radius, float height, int verts) {
+	public static Mesh cylindrical_surface (float floor_radius, float ceil_radius, float height, int verts) {
 		Mesh mesh = new Mesh ();
 		Vector3[] vs = new Vector3[verts * 6];
 		Vector2[] uv = new Vector2[verts * 6];
 		int[] tris = new int[verts * 6];
 
 		for (int a = 0; a < verts; a++) {
-			float x1 = Mathf.Cos (Mathf.PI * 2 / verts * a) * radius;
-			float z1 = Mathf.Sin (Mathf.PI * 2 / verts * a) * radius;
-			float x2 = Mathf.Cos (Mathf.PI * 2 / verts * (a + 1)) * radius;
-			float z2 = Mathf.Sin (Mathf.PI * 2 / verts * (a + 1)) * radius;
-			vs [a] = new Vector3 (x1, 0, z1);
-			vs [verts + a] = new Vector3 (x1, height, z1);
-			vs [verts * 2 + a] = new Vector3 (x2, height, z2);
-			vs [verts * 3 + a] = new Vector3 (x1, 0, z1);
-			vs [verts * 4 + a] = new Vector3 (x2, height, z2);
-			vs [verts * 5 + a] = new Vector3 (x2, 0, z2);
+			float w1 = (float)a / verts;
+			float w2 = (float)(a + 1) / verts;
 
-			uv [a] = new Vector2 ();
-			uv [verts + a] = new Vector2 ();//TODO
-			uv [verts * 2 + a] = new Vector2 ();
-			uv [verts * 3 + a] = new Vector2 ();
-			uv [verts * 4 + a] = new Vector2 ();
-			uv [verts * 5 + a] = new Vector2 ();
+			float xf1 = Mathf.Cos (Mathf.PI * 2 * w1) * floor_radius;
+			float zf1 = Mathf.Sin (Mathf.PI * 2 * w1) * floor_radius;
+			float xf2 = Mathf.Cos (Mathf.PI * 2 * w2) * floor_radius;
+			float zf2 = Mathf.Sin (Mathf.PI * 2 * w2) * floor_radius;
+			float xc1 = Mathf.Cos (Mathf.PI * 2 * w1) * ceil_radius;
+			float zc1 = Mathf.Sin (Mathf.PI * 2 * w1) * ceil_radius;
+			float xc2 = Mathf.Cos (Mathf.PI * 2 * w2) * ceil_radius;
+			float zc2 = Mathf.Sin (Mathf.PI * 2 * w2) * ceil_radius;
+			vs [a] = new Vector3 (xf1, 0, zf1);
+			vs [verts + a] = new Vector3 (xc1, height, zc1);
+			vs [verts * 2 + a] = new Vector3 (xc2, height, zc2);
+			vs [verts * 3 + a] = new Vector3 (xf1, 0, zf1);
+			vs [verts * 4 + a] = new Vector3 (xc2, height, zc2);
+			vs [verts * 5 + a] = new Vector3 (xf2, 0, zf2);
+
+			uv [a] = new Vector2 (w1, 0);
+			uv [verts + a] = new Vector2 (w1, 1);
+			uv [verts * 2 + a] = new Vector2 (w2, 1);
+			uv [verts * 3 + a] = new Vector2 (w1, 0);
+			uv [verts * 4 + a] = new Vector2 (w2, 1);
+			uv [verts * 5 + a] = new Vector2 (w2, 0);
 
 			tris [a * 6] = a;
 			tris [a * 6 + 1] = verts + a;
@@ -588,10 +600,9 @@ public class BPMesh {
 	}
 
 	//円柱（角柱）を作成
-	//TODO スムーズ面に対応させる
-	public static Mesh cylinder (float radius, float height, int verts) {
-		Mesh floor = circle (radius, verts);
-		Mesh ceil = circle (radius, verts);
+	public static Mesh cylinder (float floor_radius, float ceil_radius, float height, int verts) {
+		Mesh floor = circle (floor_radius, verts);
+		Mesh ceil = circle (ceil_radius, verts);
 		Vector3[] v = floor.vertices;
 		mesh_rotate (v, Quaternion.Euler (-180, 0, 0));
 		floor.vertices = v;
@@ -599,58 +610,34 @@ public class BPMesh {
 		mesh_move (v, Vector3.up * height);
 		ceil.vertices = v;
 
-		return mesh_combine (mesh_combine (floor, ceil), cylindrical_surface (radius, height, verts));
-	}
-
-	//円錐を作成
-	//TODO スムーズ化
-	public static Mesh getCone (float radius, float height, int verts) {
-		Mesh mesh = new Mesh ();
-
-		Vector3[] vs = new Vector3[verts * 6];
-		Vector2[] uv = new Vector2[verts * 6];
-		int[] tris = new int[verts * 6];
-
-		for (int a = 0; a < verts; a++) {
-			float x1 = Mathf.Cos (Mathf.PI * 2 / verts * a) * radius;
-			float z1 = Mathf.Sin (Mathf.PI * 2 / verts * a) * radius;
-			float x2 = Mathf.Cos (Mathf.PI * 2 / verts * (a + 1)) * radius;
-			float z2 = Mathf.Sin (Mathf.PI * 2 / verts * (a + 1)) * radius;
-			vs [a] = new Vector3 (0, 0, 0);
-			vs [verts + a] = new Vector3 (x1, 0, z1);
-			vs [verts * 2 + a] = new Vector3 (x2, 0, z2);
-			vs [verts * 3 + a] = new Vector3 (x1, 0, z1);
-			vs [verts * 4 + a] = new Vector3 (0, height, 0);
-			vs [verts * 5 + a] = new Vector3 (x2, 0, z2);
-
-			uv [a] = new Vector2 ();
-			uv [verts + a] = new Vector2 ();//TODO
-			uv [verts * 2 + a] = new Vector2 ();
-			uv [verts * 3 + a] = new Vector2 ();
-			uv [verts * 4 + a] = new Vector2 ();
-			uv [verts * 5 + a] = new Vector2 ();
-
-			tris [a * 6] = a;
-			tris [a * 6 + 1] = verts + a;
-			tris [a * 6 + 2] = verts * 2 + a;
-
-			tris [a * 6 + 3] = verts * 3 + a;
-			tris [a * 6 + 4] = verts * 4 + a;
-			tris [a * 6 + 5] = verts * 5 + a;
-		}
-
-		mesh.vertices = vs;
-		mesh.uv = uv;
-		mesh.triangles = tris;
-
-		return mesh;
+		return mesh_combine (mesh_combine (floor, ceil), cylindrical_surface (floor_radius, ceil_radius, height, verts));
 	}
 
 	//TODO 切り出し
 
 	//TODO 樹木を生成
-	public static Mesh generateTree (float radius) {
+	public static Mesh generateTree (TreeInfo info) {
+		float radius = info.getRadius ();
+		float height = info.getHeight ();
+		float bdh = info.getBranchDownHeight ();
+
 		Mesh mesh = new Mesh ();
+
+		//幹を作成
+		for (float a = 0; a < height; a += 1f) {
+			Mesh mesh_a = cylindrical_surface (Mathf.Lerp (radius, 0f, a / height), Mathf.Lerp (radius, 0f, (a + 1) / height), a + 1f < height ? 1f : height - a, 12);
+			if (a != 0) {
+				Vector3[] verts = mesh_a.vertices;
+				mesh_move (verts, Vector3.up * a);
+				mesh_a.vertices = verts;
+			}
+			mesh = mesh_combine (mesh, mesh_a);
+		}
+
+		//枝を作成
+		for (float a = bdh; a < height; a += 0.2f) {
+
+		}
 
 		return mesh;
 	}

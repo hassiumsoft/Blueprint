@@ -1,19 +1,29 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Test903 : MonoBehaviour {
-	
-	void Start () {
-		MeshFilter f = gameObject.AddComponent<MeshFilter> ();
-		f.sharedMesh = BPMesh.cylinder (0.5f, 1f, 6);
-		f.sharedMesh.RecalculateBounds ();
-		f.sharedMesh.RecalculateNormals ();
 
-		gameObject.AddComponent<MeshRenderer> ();
+	public Material mat;
+
+	MeshFilter f;
+	TreeType type = TreeType.Shirakashi;
+	float age = 0;
+
+	void Start () {
+		f = gameObject.AddComponent<MeshFilter> ();
+		gameObject.AddComponent<MeshRenderer> ().material = mat;
 	}
 
 	void Update () {
-		
+		age = Time.time;
+		if (age < TreeInfo.getMaxHeight (type) / TreeInfo.getGrowSpeed (type)) {
+			f.sharedMesh = BPMesh.generateTree (new TreeInfo (type, age));
+			f.sharedMesh.RecalculateBounds ();
+			f.sharedMesh.RecalculateNormals ();
+		}
+	}
+
+	void OnGUI () {
+		GUI.color = Color.black;
+		GUI.Label (new Rect (4, 4, 120, 24), Mathf.FloorToInt (age * 365.25f) + "日目");
 	}
 }

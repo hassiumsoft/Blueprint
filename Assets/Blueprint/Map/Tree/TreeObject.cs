@@ -42,6 +42,15 @@ public class TreeObject : MapObject {
 	public override void reloadEntity () {
 		if (entity == null)
 			return;
+		
+		MeshFilter f = entity.gameObject.AddComponent<MeshFilter> ();
+		TreeType type = TreeType.Shirakashi;
+		f.sharedMesh = BPMesh.generateTree (new TreeInfo (type, TreeInfo.getMaxHeight (type) / TreeInfo.getGrowSpeed (type)));
+		f.sharedMesh.RecalculateBounds ();
+		f.sharedMesh.RecalculateNormals ();
+
+		entity.gameObject.AddComponent<MeshRenderer> ();
+
 		base.reloadEntity ();
 	}
 }
