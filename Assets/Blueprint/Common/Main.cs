@@ -14,8 +14,7 @@ public class Main : MonoBehaviour {
 
 	public const int MIN_DRAW_DISTANCE = 1;
 	public const int MAX_DRAW_DISTANCE = 8;
-	//public const int DEFAULT_DRAW_DISTANCE = MAX_DRAW_DISTANCE;
-	public const int DEFAULT_DRAW_DISTANCE = 1;
+	public const int DEFAULT_DRAW_DISTANCE = MAX_DRAW_DISTANCE / 4;
 
 	public static Main main;
 	public static Map playingmap { get; private set; }
@@ -33,7 +32,7 @@ public class Main : MonoBehaviour {
 	public static bool isSetupped = false;
 	public static int drawDistance = DEFAULT_DRAW_DISTANCE;
 
-	private float lasttick = 0; //時間を進ませた時の余り
+	private static float lasttick = 0; //時間を進ませた時の余り
 	public Light sun; //太陽
 
 	//TODO ポーズメニューでプレイヤーなどの動きを停止させる。
@@ -123,9 +122,7 @@ public class Main : MonoBehaviour {
 		} else if (Input.GetKeyDown (KeyCode.Escape)) {
 			//TODO 新しい画面を追加したときは同時に反応してしまうのを防ぐため、対応させる必要がある。
 			if (playingmap != null) {
-				if (BPCanvas.settingPanel.isShowing ()) {
-					BPCanvas.pausePanel.show (BPCanvas.pausePanel.isShowing ());
-				} else if (!BPCanvas.titleBackPanel.isShowing ()) {
+				if (!BPCanvas.settingPanel.isShowing () && !BPCanvas.titleBackPanel.isShowing ()) {
 					BPCanvas.pausePanel.show (!BPCanvas.pausePanel.isShowing ());
 				}
 			}

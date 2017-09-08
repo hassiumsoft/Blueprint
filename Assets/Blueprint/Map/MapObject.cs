@@ -5,7 +5,6 @@ using UnityEngine;
 
 [Serializable]
 public class MapObject : ISerializable {
-	public const string KEY_MAP = "MAP";
 	public const string KEY_POS = "POS";
 	public const string KEY_ROTATION = "ROT";
 

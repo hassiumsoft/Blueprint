@@ -20,8 +20,8 @@ public class Map : ISerializable {
 
 	public string mapname { get; }
 
-	//TODO マップの作成日時を読み込むにはマップを読み込まなければいけないため、
-	//マップのチャンクやプレイヤーデータを除いた基本情報のみを読み込んだり出来るようにする。
+	//TODO マップ全体を読み込まなくてもファイルヘッダにマップの基本情報を書き込む。
+	//マップの基本情報にはマップのチャンクやプレイヤーデータを除いたマップの作成日時などがある。
 	public DateTime created { get; }
 	public List<Chunk> chunks { get; private set; } //TODO 後にチャンク呼び出しが遅くなる可能性があるためHashMapなどで高速化する必要がある
 	public List<Player> players { get; private set; }

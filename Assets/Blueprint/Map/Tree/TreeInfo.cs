@@ -15,6 +15,14 @@ public class TreeInfo {
 		this.age = age;
 	}
 
+	public bool isMagnoliopsida () {
+		return type == TreeType.Shirakashi;
+	}
+
+	public bool isLiliopsida () {
+		return false;
+	}
+
 	public float getRadius () {
 		return Mathf.Lerp (MIN_RADIUS, getMaxRadius (type), getHeight () / getMaxHeight (type));
 	}
@@ -56,6 +64,15 @@ public class TreeInfo {
 			return 0.5f;
 		default:
 			return 0f;
+		}
+	}
+
+	public class Branch {
+
+		float branchDown;
+
+		public Branch (float branchDownHeight) {
+			this.branchDown = branchDown;
 		}
 	}
 }
