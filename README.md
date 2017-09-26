@@ -8,5 +8,4 @@ Blueprintは自分の作った街で生活が出来るゲームである。
 名前の由来は設計図（Blueprint）であり、その名の通り建物などを設計から出来るのが特徴。
 
 企画：電車君（Densyakun） https://github.com/Densyakun
-
-Webhooktest
+開発用ドキュメント： https://docs.google.com/document/d/15rEZk98wduIxGjUXSLB8qgUWZlvhTxwc4Hksp0mXv3s/edit
