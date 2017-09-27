@@ -93,7 +93,7 @@ public class Chunk : ISerializable {
 		x = info.GetInt32 (KEY_X);
 		z = info.GetInt32 (KEY_Z);
 		generated = info.GetBoolean (KEY_GENERATED);
-		SerializableMesh sMesh = ((SerializableMesh)info.GetValue (KEY_MESH, typeof(SerializableMesh)));
+		SerializableMesh sMesh = (SerializableMesh)info.GetValue (KEY_MESH, typeof(SerializableMesh));
 		if (sMesh != null) {
 			mesh = sMesh.toMesh ();
 		}
@@ -391,8 +391,8 @@ public class Chunk : ISerializable {
 			meshcollider = entity.gameObject.AddComponent<MeshCollider> ();
 
 		meshrenderer.material = Main.main.mat; //TODO 一時的。（Main.csも確認）
-		//meshcollider.convex = true;
 
+		//meshcollider.convex = true;
 		meshcollider.sharedMesh = meshfilter.sharedMesh = mesh;
 	}
 }
