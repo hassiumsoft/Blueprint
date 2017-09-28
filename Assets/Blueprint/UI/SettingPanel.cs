@@ -18,7 +18,7 @@ public class SettingPanel : BPPanel {
 		drawDistanceSlider.value = Main.drawDistance;
 	}
 
-	public void show (bool show) {
+	new public void show (bool show) {
 		if (show) {
 			load ();
 		}

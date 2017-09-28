@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class BPMesh {
-
-	//TODO スムーズ面対応
-
+	
 	//メッシュの複製
 	public static Mesh mesh_copy (Mesh mesh) {
 		Mesh m = new Mesh ();
@@ -33,29 +31,34 @@ public class BPMesh {
 	public static Mesh mesh_combine (Mesh target, Mesh source) {
 		Mesh m = new Mesh ();
 
-		List<Vector3> a = new List<Vector3> (target.vertices);
+		List<Vector3> a = new List<Vector3> (target.vertices.Length + source.vertices.Length);
+		a.AddRange (target.vertices);
 		a.AddRange (source.vertices);
 		m.vertices = a.ToArray ();
 
-		List<Vector2> b = new List<Vector2> (target.uv);
+		List<Vector2> b = new List<Vector2> (target.uv.Length + source.uv.Length);
+		b.AddRange (target.uv);
 		b.AddRange (source.uv);
 		m.uv = b.ToArray ();
 
-		b = new List<Vector2> (target.uv2);
+		b = new List<Vector2> (target.uv2.Length + source.uv2.Length);
+		b.AddRange (target.uv2);
 		b.AddRange (source.uv2);
 		m.uv2 = b.ToArray ();
 
-		b = new List<Vector2> (target.uv3);
+		b = new List<Vector2> (target.uv3.Length + source.uv3.Length);
+		b.AddRange (target.uv3);
 		b.AddRange (source.uv3);
 		m.uv3 = b.ToArray ();
 
-		b = new List<Vector2> (target.uv4);
+		b = new List<Vector2> (target.uv4.Length + source.uv4.Length);
+		b.AddRange (target.uv4);
 		b.AddRange (source.uv4);
 		m.uv4 = b.ToArray ();
 
-		List<int> c = new List<int> (target.triangles);
-		int[] d = source.triangles;
-		foreach (int e in d)
+		List<int> c = new List<int> (target.triangles.Length + source.triangles.Length);
+		c.AddRange (target.triangles);
+		foreach (int e in source.triangles)
 			c.Add (e + target.triangles.Length);
 		m.triangles = c.ToArray ();
 
@@ -186,7 +189,7 @@ public class BPMesh {
 		return m;
 	}
 
-	//TODO フラット面化メソッド
+	//TODO スムーズ面・フラット面化
 
 	/*public static Vector3 getNormal (Mesh mesh, int v) {
 		Vector3? a = null;
@@ -237,9 +240,6 @@ public class BPMesh {
 	}*/
 
 	//同一位置にある頂点を目的地に移動
-	//
-	//TODO start, endの指定が存在するメソッドの繰り返し処理の条件にある"n < verts.Length"や"n < verts.Count"は、
-	//エラー回避なしでも出来る場合がほとんどであるため、繰り返し処理の負担を避けるためコメントアウトしている。
 	public static void setVert(Vector3[] verts, Vector3 target, Vector3 result) {
 		for (int n = 0; n < verts.Length; n++)
 			if (verts [n] == target)
@@ -247,6 +247,8 @@ public class BPMesh {
 	}
 
 	public static void setVert(Vector3[] verts, Vector3 target, Vector3 result, int start, int end) {
+		//"n < verts.Length"や"n < verts.Count"はエラー回避なしでも出来る場合がほとんどであるため、
+		//繰り返し処理の負担を避けるためコメントアウトしている。
 		for (int n = start; /*n < verts.Length && */n < end; n++)
 			if (verts [n] == target)
 				verts [n] = result;
@@ -300,6 +302,7 @@ public class BPMesh {
 		}
 	}
 
+	//未使用
 	public static Mesh getTriangleFlat () {
 		Mesh mesh = new Mesh ();
 
@@ -336,37 +339,45 @@ public class BPMesh {
 	}
 
 	//XZ面の地形用の四角形を作成。四隅と中心に点を置き、それぞれを結んだ4つの三角面で構成されている
-	public static Mesh getQuadTerrain () {
+	public static Mesh getQuadTerrain (float size) {
 		Mesh mesh = new Mesh ();
 
+		Vector3 f = Vector3.forward * size;
+		Vector3 r = Vector3.right * size;
+		Vector3 rf = f + r;
+		Vector3 c = rf / 2;
 		mesh.vertices = new Vector3[] {
 			Vector3.zero,
-			Vector3.forward,
-			(Vector3.right + Vector3.forward) / 2,
-			Vector3.forward,
-			Vector3.right + Vector3.forward,
-			(Vector3.right + Vector3.forward) / 2,
-			Vector3.right + Vector3.forward,
-			Vector3.right,
-			(Vector3.right + Vector3.forward) / 2,
-			Vector3.right,
+			f,
+			c,
+			f,
+			rf,
+			c,
+			rf,
+			r,
+			c,
+			r,
 			Vector3.zero,
-			(Vector3.right + Vector3.forward) / 2
+			c
 		};
+
+		Vector2 ru = Vector2.right + Vector2.up;
+		Vector2 c2 = ru / 2;
 		mesh.uv = new Vector2[] {
 			Vector2.zero,
 			Vector2.up,
-			(Vector2.right + Vector2.up) / 2,
+			c2,
 			Vector2.up,
-			Vector2.right + Vector2.up,
-			(Vector2.right + Vector2.up) / 2,
-			Vector2.right + Vector2.up,
+			ru,
+			c2,
+			ru,
 			Vector2.right,
-			(Vector2.right + Vector2.up) / 2,
+			c2,
 			Vector2.right,
 			Vector2.zero,
-			(Vector2.right + Vector2.up) / 2
+			c2
 		};
+
 		mesh.triangles = new int[]{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
 		return mesh;
@@ -381,14 +392,12 @@ public class BPMesh {
 	//チャンクに対応した地形を生成する際に使用する。
 	public static Mesh getBPFractalTerrain (int fineness, float size, float height, List<Vector3> points) {
 		//地形用の四角形メッシュを作成
-		Mesh mesh = getQuadTerrain ();
-
-		//チャンクサイズに拡大
+		Mesh mesh = getQuadTerrain (size);
 		Vector3[] verts = mesh.vertices;
-		for (int a = 0; a < verts.Length; a++)
-			verts [a] = verts [a] *= size;
 
-		//隣接するチャンクの地形に合わせ頂点を変位させる
+		//TODO スムーズ面とフラット面を調整して頂点の数を少なくすることで処理を高速化
+
+		//点群データに合わせ頂点を変位させる
 		for (int a = 0; a < verts.Length; a++) {
 			Vector3 v0 = verts [a];
 			v0.y = Random.Range (0f, height);
@@ -440,12 +449,8 @@ public class BPMesh {
 	}
 
 	public static IEnumerator getBPFractalTerrainAsync (MonoBehaviour behaviour, int fineness, float size, float height, List<Vector3> points) {
-		Mesh mesh = getQuadTerrain ();
-
+		Mesh mesh = getQuadTerrain (size);
 		Vector3[] verts = mesh.vertices;
-
-		for (int a = 0; a < verts.Length; a++)
-			verts [a] = verts [a] *= size;
 
 		for (int a = 0; a < verts.Length; a++) {
 			Vector3 v0 = verts [a];
