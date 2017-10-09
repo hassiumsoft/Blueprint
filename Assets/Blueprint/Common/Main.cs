@@ -11,10 +11,18 @@ public class Main : MonoBehaviour {
 	public const string KEY_FIRSTSTART = "FIRSTSTART";
 	public const string KEY_SETUPPED = "SETUPPED";
 	public const string KEY_DRAW_DISTANCE = "DRAWDISTANCE";
+	public const string KEY_DRAG_ROT_SPEED = "DRAG_ROT_SPEED";
+	public const string KEY_CONTRAST_STRETCH = "CONTRAST_STRETCH";
+	public const string KEY_BLOOM = "BLOOM";
 
 	public const int MIN_DRAW_DISTANCE = 1;
 	public const int MAX_DRAW_DISTANCE = 8;
 	public const int DEFAULT_DRAW_DISTANCE = MAX_DRAW_DISTANCE / 4;
+	public const float MIN_DRAG_ROT_SPEED = 0.1f;
+	public const float MAX_DRAG_ROT_SPEED = 3f;
+	public const float DEFAULT_DRAG_ROT_SPEED = 0.5f;
+	public const bool DEFAULT_CONTRAST_STRETCH = true;
+	public const bool DEFAULT_BLOOM = true;
 
 	public static Main main;
 	public static Map playingmap { get; private set; }
@@ -31,6 +39,9 @@ public class Main : MonoBehaviour {
 	public static DateTime[] firstStartTimes { get; private set; }
 	public static bool isSetupped = false;
 	public static int drawDistance = DEFAULT_DRAW_DISTANCE;
+	public static float dragRotSpeed = DEFAULT_DRAG_ROT_SPEED;
+	public static bool contrastStretch = DEFAULT_CONTRAST_STRETCH;
+	public static bool bloom = DEFAULT_BLOOM;
 
 	private static float lasttick = 0; //時間を進ませた時の余り
 	public Light sun; //太陽
@@ -101,6 +112,9 @@ public class Main : MonoBehaviour {
 		//print ("isSetupped: " + isSetupped);
 
 		drawDistance = PlayerPrefs.GetInt (KEY_DRAW_DISTANCE, DEFAULT_DRAW_DISTANCE);
+		dragRotSpeed = PlayerPrefs.GetFloat (KEY_DRAG_ROT_SPEED, DEFAULT_DRAG_ROT_SPEED);
+		contrastStretch = PlayerPrefs.GetInt (KEY_CONTRAST_STRETCH, DEFAULT_CONTRAST_STRETCH ? 1 : 0) == 1;
+		bloom = PlayerPrefs.GetInt (KEY_BLOOM, DEFAULT_BLOOM ? 1 : 0) == 1;
 
 		Player.playerPrefab = playerPrefab;
 	}
@@ -168,6 +182,9 @@ public class Main : MonoBehaviour {
 
 	public static void saveSettings () {
 		PlayerPrefs.SetInt (KEY_DRAW_DISTANCE, drawDistance);
+		PlayerPrefs.SetFloat (KEY_DRAG_ROT_SPEED, dragRotSpeed);
+		PlayerPrefs.SetInt (KEY_CONTRAST_STRETCH, contrastStretch ? 1 : 0);
+		PlayerPrefs.SetInt (KEY_BLOOM, bloom ? 1 : 0);
 	}
 
 	public static IEnumerator openMap (string mapname) {
