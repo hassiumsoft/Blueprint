@@ -5,12 +5,15 @@ using System.Diagnostics;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityStandardAssets.ImageEffects;
 
 public class Main : MonoBehaviour {
 	public const string VERSION = "0.001alpha";
 	public const string KEY_FIRSTSTART = "FIRSTSTART";
 	public const string KEY_SETUPPED = "SETUPPED";
 	public const string KEY_DRAW_DISTANCE = "DRAWDISTANCE";
+	public const string KEY_BGM_VOLUME = "BGM_VOL";
+	public const string KEY_SE_VOLUME = "SE_VOL";
 	public const string KEY_DRAG_ROT_SPEED = "DRAG_ROT_SPEED";
 	public const string KEY_CONTRAST_STRETCH = "CONTRAST_STRETCH";
 	public const string KEY_BLOOM = "BLOOM";
@@ -18,6 +21,12 @@ public class Main : MonoBehaviour {
 	public const int MIN_DRAW_DISTANCE = 1;
 	public const int MAX_DRAW_DISTANCE = 8;
 	public const int DEFAULT_DRAW_DISTANCE = MAX_DRAW_DISTANCE / 4;
+	public const float MIN_BGM_VOLUME = 0f;
+	public const float MAX_BGM_VOLUME = 1f;
+	public const float DEFAULT_BGM_VOLUME = 1f / 3;
+	public const float MIN_SE_VOLUME = 0f;
+	public const float MAX_SE_VOLUME = 1f;
+	public const float DEFAULT_SE_VOLUME = 1f;
 	public const float MIN_DRAG_ROT_SPEED = 0.1f;
 	public const float MAX_DRAG_ROT_SPEED = 3f;
 	public const float DEFAULT_DRAG_ROT_SPEED = 0.5f;
@@ -39,13 +48,18 @@ public class Main : MonoBehaviour {
 	public static DateTime[] firstStartTimes { get; private set; }
 	public static bool isSetupped = false;
 	public static int drawDistance = DEFAULT_DRAW_DISTANCE;
+	public static float bgmVolume = DEFAULT_BGM_VOLUME;
+	public static float seVolume = DEFAULT_SE_VOLUME;
 	public static float dragRotSpeed = DEFAULT_DRAG_ROT_SPEED;
 	public static bool contrastStretch = DEFAULT_CONTRAST_STRETCH;
 	public static bool bloom = DEFAULT_BLOOM;
 
 	private static float lasttick = 0; //時間を進ませた時の余り
 	public Light sun; //太陽
-
+	public Camera mainCamera;
+	public AudioClip[] titleClips;
+	public AudioSource bgmSource;
+	public AudioSource seSource;
 	//TODO ポーズメニューでプレイヤーなどの動きを停止させる。
 	//TODO セーブ中の画面
 	//TODO 時間が実時間と同じスピードで進むため、時間を早く進ませたりスキップしたりする機能を追加する必要がある。
@@ -112,9 +126,12 @@ public class Main : MonoBehaviour {
 		//print ("isSetupped: " + isSetupped);
 
 		drawDistance = PlayerPrefs.GetInt (KEY_DRAW_DISTANCE, DEFAULT_DRAW_DISTANCE);
+		bgmVolume = PlayerPrefs.GetFloat (KEY_BGM_VOLUME, DEFAULT_BGM_VOLUME);
+		seVolume = PlayerPrefs.GetFloat (KEY_SE_VOLUME, DEFAULT_SE_VOLUME);
 		dragRotSpeed = PlayerPrefs.GetFloat (KEY_DRAG_ROT_SPEED, DEFAULT_DRAG_ROT_SPEED);
 		contrastStretch = PlayerPrefs.GetInt (KEY_CONTRAST_STRETCH, DEFAULT_CONTRAST_STRETCH ? 1 : 0) == 1;
 		bloom = PlayerPrefs.GetInt (KEY_BLOOM, DEFAULT_BLOOM ? 1 : 0) == 1;
+		saveSettings ();
 
 		Player.playerPrefab = playerPrefab;
 	}
@@ -142,21 +159,25 @@ public class Main : MonoBehaviour {
 			}
 		}
 
-		if (playingmap != null && !playingmap.pause) {
-			//時間を進ませる
-			lasttick += Time.deltaTime * 1000f;
+		if (playingmap != null) {
+			if (bgmSource.isPlaying)
+				bgmSource.Stop ();
 
-			int ticks = Mathf.FloorToInt (lasttick);
-			lasttick -= ticks;
-			playingmap.TimePasses (ticks);
+			if (!playingmap.pause) {
+				//時間を進ませる
+				lasttick += Time.deltaTime * 1000f;
 
-			sun.transform.eulerAngles = new Vector3 (0, 0, 0);
+				int ticks = Mathf.FloorToInt (lasttick);
+				lasttick -= ticks;
+				playingmap.TimePasses (ticks);
 
-			float t = Mathf.Repeat (playingmap.time, 86400000f); //86400000ms = 1日
-			float r = t * 360f / 86400000f - 75f;
-			sun.transform.localEulerAngles = new Vector3 (r, -90f, 0f);
-			float intensity = Mathf.Max (1f - Mathf.Abs ((r + 90f) / 180f - 1f), min_reflectionIntensity);
-			sun.intensity = RenderSettings.ambientIntensity = RenderSettings.reflectionIntensity = intensity;
+				sun.transform.eulerAngles = new Vector3 (0, 0, 0);
+
+				StartCoroutine (reloadLighting ());
+			}
+		} else if (!bgmSource.isPlaying) {
+			bgmSource.clip = titleClips [UnityEngine.Random.Range (0, titleClips.Length)];
+			bgmSource.Play ();
 		}
 	}
 
@@ -182,9 +203,14 @@ public class Main : MonoBehaviour {
 
 	public static void saveSettings () {
 		PlayerPrefs.SetInt (KEY_DRAW_DISTANCE, drawDistance);
+		PlayerPrefs.SetFloat (KEY_BGM_VOLUME, bgmVolume);
+		PlayerPrefs.SetFloat (KEY_SE_VOLUME, seVolume);
 		PlayerPrefs.SetFloat (KEY_DRAG_ROT_SPEED, dragRotSpeed);
-		PlayerPrefs.SetInt (KEY_CONTRAST_STRETCH, contrastStretch ? 1 : 0);
-		PlayerPrefs.SetInt (KEY_BLOOM, bloom ? 1 : 0);
+		PlayerPrefs.SetInt (KEY_CONTRAST_STRETCH, (main.mainCamera.GetComponent<ContrastStretch> ().enabled = contrastStretch) ? 1 : 0);
+		PlayerPrefs.SetInt (KEY_BLOOM, (main.mainCamera.GetComponent<BloomOptimized> ().enabled = bloom) ? 1 : 0);
+
+		main.bgmSource.volume = bgmVolume;
+		main.seSource.volume = seVolume;
 	}
 
 	public static IEnumerator openMap (string mapname) {
@@ -237,5 +263,16 @@ public class Main : MonoBehaviour {
 	//描画を優先して負荷のかかる処理を行うため、描画状態に応じてyield returnを行う条件を返すメソッド
 	public static bool yrCondition () {
 		return 1 / Time.deltaTime < Main.min_fps;
+	}
+
+	public IEnumerator reloadLighting () {
+		if (yrCondition ())
+			yield return null;
+
+		float t = Mathf.Repeat (playingmap.time, 86400000f); //86400000ms = 1日
+		float r = t * 360f / 86400000f - 75f;
+		sun.transform.localEulerAngles = new Vector3 (r, -90f, 0f);
+		float intensity = Mathf.Max (1f - Mathf.Abs ((r + 90f) / 180f - 1f), min_reflectionIntensity);
+		sun.intensity = RenderSettings.ambientIntensity = RenderSettings.reflectionIntensity = intensity;
 	}
 }
