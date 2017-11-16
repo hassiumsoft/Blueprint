@@ -105,7 +105,7 @@ public class Main : MonoBehaviour {
 			}
 			a += firstStartTimes [f].Ticks;
 		}
-		PlayerPrefs.SetString (KEY_FIRSTSTART, "" + a);
+		PlayerPrefs.SetString (KEY_FIRSTSTART, a);
 
 		//ゲーム起動日時及び、ゲーム初回起動情報をコンソールに出力
 		//print ("firstStart: " + firstStart);
@@ -181,7 +181,7 @@ public class Main : MonoBehaviour {
 		}
 	}
 
-	public void quit () {
+	public static void quit () {
 		#if UNITY_EDITOR
 		UnityEditor.EditorApplication.isPlaying = false;
 		#elif !UNITY_WEBPLAYER
@@ -189,28 +189,25 @@ public class Main : MonoBehaviour {
 		#endif
 	}
 
-	public void screenShot () {
+	public static void screenShot () {
 		Directory.CreateDirectory (ssdir);
 		string fileName = DateTime.Now.Ticks + ".png";
 		Application.CaptureScreenshot (Path.Combine (ssdir, fileName));
 		print (DateTime.Now + " ScreenShot: " + fileName);
 	}
 
-	public void openSSDir () {
+	public static void openSSDir () {
 		Directory.CreateDirectory (ssdir);
 		Process.Start (ssdir);
 	}
 
 	public static void saveSettings () {
 		PlayerPrefs.SetInt (KEY_DRAW_DISTANCE, drawDistance);
-		PlayerPrefs.SetFloat (KEY_BGM_VOLUME, bgmVolume);
-		PlayerPrefs.SetFloat (KEY_SE_VOLUME, seVolume);
+		PlayerPrefs.SetFloat (KEY_BGM_VOLUME, main.bgmSource.volume = bgmVolume);
+		PlayerPrefs.SetFloat (KEY_SE_VOLUME, main.seSource.volume = seVolume);
 		PlayerPrefs.SetFloat (KEY_DRAG_ROT_SPEED, dragRotSpeed);
 		PlayerPrefs.SetInt (KEY_CONTRAST_STRETCH, (main.mainCamera.GetComponent<ContrastStretch> ().enabled = contrastStretch) ? 1 : 0);
 		PlayerPrefs.SetInt (KEY_BLOOM, (main.mainCamera.GetComponent<BloomOptimized> ().enabled = bloom) ? 1 : 0);
-
-		main.bgmSource.volume = bgmVolume;
-		main.seSource.volume = seVolume;
 	}
 
 	public static IEnumerator openMap (string mapname) {
