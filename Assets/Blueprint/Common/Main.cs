@@ -192,7 +192,7 @@ public class Main : MonoBehaviour {
 	public void screenShot () {
 		Directory.CreateDirectory (ssdir);
 		string fileName = DateTime.Now.Ticks + ".png";
-		Application.CaptureScreenshot (Path.Combine (ssdir, fileName));
+		ScreenCapture.CaptureScreenshot (Path.Combine (ssdir, fileName));
 		print (DateTime.Now + " ScreenShot: " + fileName);
 	}
 
