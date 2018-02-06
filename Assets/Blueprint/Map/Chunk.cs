@@ -260,7 +260,7 @@ public class Chunk : ISerializable {
 				for (int b = 0; b < verts1.Count;) {
 					//ゲームプレイに影響を与えない程度にマップ生成を優先する
 					//if (Main.yrCondition ())
-					//	yield return null;
+					//	yield return new WaitForEndOfFrame();
 					if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size)
 						b++;
 					else
@@ -269,7 +269,7 @@ public class Chunk : ISerializable {
 				Vector3[] verts2 = verts1.ToArray ();
 				for (int c = 0; c < verts2.Length; c++) {
 					//if (Main.yrCondition ())
-					//	yield return null;
+					//	yield return new WaitForEndOfFrame();
 					verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
 				}
 				points.AddRange (verts2);

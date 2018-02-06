@@ -271,7 +271,7 @@ public class BPMesh {
 	public static IEnumerator setVertAsync(Vector3[] verts, Vector3 target, Vector3 result) {
 		for (int n = 0; n < verts.Length; n++) {
 			if (Main.yrCondition ())
-				yield return null;
+				yield return new WaitForEndOfFrame();
 			if (verts [n] == target)
 				verts [n] = result;
 		}
@@ -280,7 +280,7 @@ public class BPMesh {
 	public static IEnumerator setVertAsync(Vector3[] verts, Vector3 target, Vector3 result, int start, int end) {
 		for (int n = start; /*n < verts.Length && */n < end; n++) {
 			if (Main.yrCondition ())
-				yield return null;
+				yield return new WaitForEndOfFrame();
 			if (verts [n] == target)
 				verts [n] = result;
 		}
@@ -301,7 +301,7 @@ public class BPMesh {
 	public static IEnumerator setVertAsync(List<Vector3> verts, Vector3 target, Vector3 result) {
 		for (int n = 0; n < verts.Count; n++) {
 			if (Main.yrCondition ())
-				yield return null;
+				yield return new WaitForEndOfFrame();
 			if (verts [n] == target)
 				verts [n] = result;
 		}
@@ -310,7 +310,7 @@ public class BPMesh {
 	public static IEnumerator setVertAsync(List<Vector3> verts, Vector3 target, Vector3 result, int start, int end) {
 		for (int n = start; /*n < verts.Count && */n < end; n++) {
 			if (Main.yrCondition ())
-				yield return null;
+				yield return new WaitForEndOfFrame();
 			if (verts [n] == target)
 				verts [n] = result;
 		}
@@ -439,7 +439,6 @@ public class BPMesh {
 			for (int c = 0; c < points.Count; c++) {
 				if (verts [a].x == points [c].x && verts [a].z == points [c].z) {
 					b = false;
-					//setVert (verts, verts [a], points [c]);
 					verts [a] = points [c];
 					points.RemoveAt (c);
 					break;
@@ -448,7 +447,6 @@ public class BPMesh {
 
 			if (b) {
 				v0.y = Random.Range (0f, height);
-				//setVert (verts, verts [a], v0);
 				verts [a] = v0;
 			}
 		}
@@ -468,7 +466,6 @@ public class BPMesh {
 					for (int e = 0; e < points.Count; e++) {
 						if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
 							c = false;
-							//setVert (verts, verts [b], points [e]);
 							verts [b] = points [e];
 							points.RemoveAt (e);
 							break;
@@ -478,7 +475,6 @@ public class BPMesh {
 
 				if (c) {
 					float d = height / Mathf.Pow (2, a + 1);
-					//setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
 					verts [b] = verts [b] + Vector3.up * Random.Range (-d, d);
 				}
 
@@ -504,11 +500,8 @@ public class BPMesh {
 
 			bool b = true;
 			for (int c = 0; c < points.Count; c++) {
-				//if (Main.yrCondition ())
-				//	yield return null;
 				if (verts [a].x == points [c].x && verts [a].z == points [c].z) {
 					b = false;
-					//setVert (verts, verts [a], points [c]);
 					verts [a] = points [c];
 					points.RemoveAt (c);
 					break;
@@ -517,7 +510,6 @@ public class BPMesh {
 
 			if (b) {
 				v0.y = Random.Range (0f, height);
-				//setVert (verts, verts [a], v0);
 				verts [a] = v0;
 			}
 		}
@@ -536,10 +528,9 @@ public class BPMesh {
 				if (verts [b].x == 0 || verts [b].x == Chunk.size || verts [b].z == 0 || verts [b].z == Chunk.size) {
 					for (int e = 0; e < points.Count; e++) {
 						//if (Main.yrCondition ())
-						//	yield return null;
+						//	yield return new WaitForEndOfFrame();
 						if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
 							c = false;
-							//setVert (verts, verts [b], points [e]);
 							verts [b] = points [e];
 							points.RemoveAt (e);
 							break;
@@ -549,8 +540,6 @@ public class BPMesh {
 
 				if (c) {
 					float d = height / Mathf.Pow (2, a + 1);
-					//setVert (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d));
-					//yield return behaviour.StartCoroutine (setVertAsync (verts, verts [b], verts [b] + Vector3.up * Random.Range (-d, d)));
 					verts [b] = verts [b] + Vector3.up * Random.Range (-d, d);
 				}
 

@@ -55,6 +55,7 @@ public class Main : MonoBehaviour {
 	public static bool bloom = DEFAULT_BLOOM;
 
 	private static float lasttick = 0; //時間を進ませた時の余り
+	private static float lasttick_few = 0; //頻繁に変更しないするための計算。この機能は一秒ごとに処理を行う。
 	public Light sun; //太陽
 	public Camera mainCamera;
 	public AudioClip[] titleClips;
@@ -151,7 +152,6 @@ public class Main : MonoBehaviour {
 		if (Input.GetKeyDown (KeyCode.F2)) {
 			screenShot ();
 		} else if (Input.GetKeyDown (KeyCode.Escape)) {
-			//TODO 新しい画面を追加したときは同時に反応してしまうのを防ぐため、対応させる必要がある。
 			if (playingmap != null) {
 				if (!BPCanvas.settingPanel.isShowing () && !BPCanvas.titleBackPanel.isShowing ()) {
 					BPCanvas.pausePanel.show (!BPCanvas.pausePanel.isShowing ());
@@ -166,14 +166,20 @@ public class Main : MonoBehaviour {
 			if (!playingmap.pause) {
 				//時間を進ませる
 				lasttick += Time.deltaTime * 1000f;
+				lasttick_few += Time.deltaTime;
 
 				int ticks = Mathf.FloorToInt (lasttick);
 				lasttick -= ticks;
-				playingmap.TimePasses (ticks);
 
-				sun.transform.eulerAngles = new Vector3 (0, 0, 0);
+				int ticks_few = Mathf.FloorToInt (lasttick_few);
+				lasttick_few -= ticks_few;
+				if (ticks_few != 0) {
+					reloadLighting ();
+				}
 
-				StartCoroutine (reloadLighting ());
+				if (ticks != 0) {
+					playingmap.TimePasses (ticks);
+				}
 			}
 		} else if (!bgmSource.isPlaying) {
 			bgmSource.clip = titleClips [UnityEngine.Random.Range (0, titleClips.Length)];
@@ -232,6 +238,7 @@ public class Main : MonoBehaviour {
 			BPCanvas.unsupportedMapPanel.show (true);
 		} else {
 			playingmap = map;
+			Main.main.reloadLighting ();
 
 			//TODO プレイヤーの生成に時間がかかる
 
@@ -259,16 +266,15 @@ public class Main : MonoBehaviour {
 
 	//描画を優先して負荷のかかる処理を行うため、描画状態に応じてyield returnを行う条件を返すメソッド
 	public static bool yrCondition () {
-		return 1 / Time.deltaTime < Main.min_fps;
+		return 1 / Time.deltaTime <= Main.min_fps;
 	}
 
-	public IEnumerator reloadLighting () {
-		if (yrCondition ())
-			yield return null;
-
+	public void reloadLighting () {
 		float t = Mathf.Repeat (playingmap.time, 86400000f); //86400000ms = 1日
 		float r = t * 360f / 86400000f - 75f;
 		sun.transform.localEulerAngles = new Vector3 (r, -90f, 0f);
+
+		//頻繁に変更すると重くなる
 		float intensity = Mathf.Max (1f - Mathf.Abs ((r + 90f) / 180f - 1f), min_reflectionIntensity);
 		sun.intensity = RenderSettings.ambientIntensity = RenderSettings.reflectionIntensity = intensity;
 	}
