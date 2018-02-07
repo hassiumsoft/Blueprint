@@ -517,6 +517,8 @@ public class BPMesh {
 		mesh.vertices = verts;
 
 		for (int a = 0; a < fineness; a++) {
+			if (Main.yrCondition ())
+				yield return new WaitForEndOfFrame();
 			int b = mesh.vertices.Length;
 
 			mesh = Remove_Doubles (Subdivide_Half (mesh));
@@ -527,8 +529,8 @@ public class BPMesh {
 
 				if (verts [b].x == 0 || verts [b].x == Chunk.size || verts [b].z == 0 || verts [b].z == Chunk.size) {
 					for (int e = 0; e < points.Count; e++) {
-						//if (Main.yrCondition ())
-						//	yield return new WaitForEndOfFrame();
+						if (Main.yrCondition ())
+							yield return new WaitForEndOfFrame();
 						if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
 							c = false;
 							verts [b] = points [e];

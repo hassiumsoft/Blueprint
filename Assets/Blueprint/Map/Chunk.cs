@@ -258,21 +258,16 @@ public class Chunk : ISerializable {
 			if (chunk.generated) {
 				List<Vector3> verts1 = new List<Vector3> (chunk.mesh.vertices);
 				for (int b = 0; b < verts1.Count;) {
-					//ゲームプレイに影響を与えない程度にマップ生成を優先する
-					//if (Main.yrCondition ())
-					//	yield return new WaitForEndOfFrame();
-					if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size)
+					if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size) {
+						//ゲームプレイに影響を与えない程度にマップ生成を優先する
+						if (Main.yrCondition ())
+							yield return new WaitForEndOfFrame();
+						verts1 [b] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
 						b++;
-					else
+					} else
 						verts1.RemoveAt (b);
 				}
-				Vector3[] verts2 = verts1.ToArray ();
-				for (int c = 0; c < verts2.Length; c++) {
-					//if (Main.yrCondition ())
-					//	yield return new WaitForEndOfFrame();
-					verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
-				}
-				points.AddRange (verts2);
+				points.AddRange (verts1);
 
 				if (!e_u) {
 					e_ul = true;
