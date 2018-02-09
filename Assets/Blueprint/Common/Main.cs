@@ -240,8 +240,6 @@ public class Main : MonoBehaviour {
 			playingmap = map;
 			Main.main.reloadLighting ();
 
-			//TODO プレイヤーの生成に時間がかかる
-
 			int pid = playingmap.getPlayer ("master");//TODO 仮
 			if (pid == -1) {
 				playingmap.players.Add (masterPlayer = new Player (playingmap, "master"));

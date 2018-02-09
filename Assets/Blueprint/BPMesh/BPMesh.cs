@@ -352,6 +352,7 @@ public class BPMesh {
 		return mesh;
 	}
 
+	//未使用
 	//XZ面の地形用の四角形を作成。四隅と中心に点を置き、それぞれを結んだ4つの三角面で構成されている
 	public static Mesh getQuadTerrain (float size, bool smooth) {
 		Mesh mesh = new Mesh ();
@@ -424,65 +425,103 @@ public class BPMesh {
 		return getBPFractalTerrain (fineness, size, height, new List<Vector3> ());
 	}
 
-	//pointsに点群データを入れておくことで、X,Zが一致する点のYを点群データに合わせることが出来る。
+	//pointsに隣接する地形の点群データを入れておくことで、X,Zが一致する点のYを点群データに合わせることが出来る。
 	//チャンクに対応した地形を生成する際に使用する。
 	public static Mesh getBPFractalTerrain (int fineness, float size, float height, List<Vector3> points) {
-		//地形用の四角形メッシュを作成
-		Mesh mesh = getQuadTerrain (size, true);
-		Vector3[] verts = mesh.vertices;
+		int a = (int)Mathf.Pow (2, fineness - 1); //面の列数
+		Vector3[] verts = new Vector3[(a + 1) * (a + 1)];
 
-		//点群データに合わせ頂点を変位させる
-		for (int a = 0; a < verts.Length; a++) {
-			Vector3 v0 = verts [a];
+		//細分化
+		bool center = false;
+		for (int b = 0; b < fineness;) {
+			int c = (int)Mathf.Pow (2, b);
+			for (int z = 0; z <= c; z++) {
+				for (int x = 0; x <= c; x++) {
+					int d = z * (a + 1) * a / c + x * a / c;
+					if (center && (x % 2 != 1 || z % 2 != 1) || b != 0 && !center && x % 2 == z % 2)
+						continue;
+					verts [d] = new Vector3 (x * size / c, 0f, z * size / c);
 
-			bool b = true;
-			for (int c = 0; c < points.Count; c++) {
-				if (verts [a].x == points [c].x && verts [a].z == points [c].z) {
-					b = false;
-					verts [a] = points [c];
-					points.RemoveAt (c);
-					break;
-				}
-			}
+					bool e = true;
+					if (center) {
+						verts [d].y = (verts [d - (a + 1) * a / c - a / c].y +
+						verts [d - (a + 1) * a / c + a / c].y +
+						verts [d + (a + 1) * a / c - a / c].y +
+						verts [d + (a + 1) * a / c + a / c].y) / 4;
+					} else {
+						//隣接チャンクと縫い合わせる
+						if (verts [d].x == 0 || verts [d].x == size || verts [d].z == 0 || verts [d].z == size) {
+							for (int f = 0; f < points.Count; f++) {
+								if (verts [d].x == points [f].x && verts [d].z == points [f].z) {
+									e = false;
+									verts [d] = points [f];
+									points.RemoveAt (f);
+									break;
+								}
+							}
+						}
 
-			if (b) {
-				v0.y = Random.Range (0f, height);
-				verts [a] = v0;
-			}
-		}
-		mesh.vertices = verts;
-
-		//細分化を行い、上記と同じように隣接するチャンクの地形に合わせ頂点を変位させる
-		for (int a = 0; a < fineness; a++) {
-			int b = mesh.vertices.Length;
-
-			mesh = Remove_Doubles (Subdivide_Half (mesh));
-
-			verts = mesh.vertices;
-			while (b < verts.Length) {
-				bool c = true;
-
-				if (verts [b].x == 0 || verts [b].x == Chunk.size || verts [b].z == 0 || verts [b].z == Chunk.size) {
-					for (int e = 0; e < points.Count; e++) {
-						if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
-							c = false;
-							verts [b] = points [e];
-							points.RemoveAt (e);
-							break;
+						if (e) {
+							if (b == 0)
+								verts [d].y = height / 2;
+							else {
+								if (x % 2 == 1)
+									verts [d].y = (verts [d - a / c].y +
+									verts [d + a / c].y) / 2;
+								else if (z % 2 == 1)
+									verts [d].y = (verts [d - (a + 1) * a / c].y +
+									verts [d + (a + 1) * a / c].y) / 2;
+							}
 						}
 					}
-				}
 
-				if (c) {
-					float d = height / Mathf.Pow (2, a + 1);
-					verts [b] = verts [b] + Vector3.up * Random.Range (-d, d);
+					//ノイズ
+					if (e) {
+						float f = height / c;
+						verts [d].y = Mathf.Clamp (verts [d].y + Random.Range (-f, f), 0, height);
+					}
 				}
-
+			}
+			if (center)
+				center = false;
+			else {
+				center = true;
 				b++;
 			}
-			mesh.vertices = verts;
 		}
-		mesh = Remove_Doubles (mesh);
+
+		//メッシュの縫い合わせ（高低差がある方に辺が引かれる）
+		int[] tris = new int[6 * a * a];
+		for (int z = 0; z < a; z++) {
+			for (int x = 0; x < a; x++) {
+				int b = 6 * (z * a + x);
+
+				int vc = z * (a + 1) + x;
+				int vr = vc + 1;
+				int vu = vc + a + 1;
+				int vru = vc + a + 2;
+
+				if (Mathf.Abs (verts [vr].y - verts [vu].y) < Mathf.Abs (verts [vru].y - verts [vc].y)) {
+					tris [b] = vc;
+					tris [b + 1] = vu;
+					tris [b + 2] = vru;
+					tris [b + 3] = vc;
+					tris [b + 4] = vru;
+					tris [b + 5] = vr;
+				} else {
+					tris [b] = vc;
+					tris [b + 1] = vu;
+					tris [b + 2] = vr;
+					tris [b + 3] = vu;
+					tris [b + 4] = vru;
+					tris [b + 5] = vr;
+				}
+			}
+		}
+
+		Mesh mesh = new Mesh ();
+		mesh.vertices = verts;
+		mesh.triangles = tris;
 		mesh.RecalculateNormals ();
 		return mesh;
 	}
@@ -492,64 +531,100 @@ public class BPMesh {
 	}
 
 	public static IEnumerator getBPFractalTerrainAsync (MonoBehaviour behaviour, int fineness, float size, float height, List<Vector3> points) {
-		Mesh mesh = getQuadTerrain (size, true);
-		Vector3[] verts = mesh.vertices;
+		int a = (int)Mathf.Pow (2, fineness - 1);
+		Vector3[] verts = new Vector3[(a + 1) * (a + 1)];
 
-		for (int a = 0; a < verts.Length; a++) {
-			Vector3 v0 = verts [a];
-
-			bool b = true;
-			for (int c = 0; c < points.Count; c++) {
-				if (verts [a].x == points [c].x && verts [a].z == points [c].z) {
-					b = false;
-					verts [a] = points [c];
-					points.RemoveAt (c);
-					break;
-				}
-			}
-
-			if (b) {
-				v0.y = Random.Range (0f, height);
-				verts [a] = v0;
-			}
-		}
-
-		mesh.vertices = verts;
-
-		for (int a = 0; a < fineness; a++) {
+		bool center = false;
+		for (int b = 0; b < fineness;) {
+			//ゲームプレイに影響を与えない程度に生成する
 			if (Main.yrCondition ())
 				yield return new WaitForEndOfFrame();
-			int b = mesh.vertices.Length;
 
-			mesh = Remove_Doubles (Subdivide_Half (mesh));
+			int c = (int)Mathf.Pow (2, b);
+			for (int z = 0; z <= c; z++) {
+				for (int x = 0; x <= c; x++) {
+					int d = z * (a + 1) * a / c + x * a / c;
+					if (center && (x % 2 != 1 || z % 2 != 1) || b != 0 && !center && x % 2 == z % 2)
+						continue;
+					verts [d] = new Vector3 (x * size / c, 0f, z * size / c);
 
-			verts = mesh.vertices;
-			while (b < verts.Length) {
-				bool c = true;
+					bool e = true;
+					if (center) {
+						verts [d].y = (verts [d - (a + 1) * a / c - a / c].y +
+							verts [d - (a + 1) * a / c + a / c].y +
+							verts [d + (a + 1) * a / c - a / c].y +
+							verts [d + (a + 1) * a / c + a / c].y) / 4;
+					} else {
+						if (verts [d].x == 0 || verts [d].x == size || verts [d].z == 0 || verts [d].z == size) {
+							for (int f = 0; f < points.Count; f++) {
+								if (verts [d].x == points [f].x && verts [d].z == points [f].z) {
+									e = false;
+									verts [d] = points [f];
+									points.RemoveAt (f);
+									break;
+								}
+							}
+						}
 
-				if (verts [b].x == 0 || verts [b].x == Chunk.size || verts [b].z == 0 || verts [b].z == Chunk.size) {
-					for (int e = 0; e < points.Count; e++) {
-						if (Main.yrCondition ())
-							yield return new WaitForEndOfFrame();
-						if (verts [b].x == points [e].x && verts [b].z == points [e].z) {
-							c = false;
-							verts [b] = points [e];
-							points.RemoveAt (e);
-							break;
+						if (e) {
+							if (b == 0)
+								verts [d].y = height / 2;
+							else {
+								if (x % 2 == 1)
+									verts [d].y = (verts [d - a / c].y +
+										verts [d + a / c].y) / 2;
+								else if (z % 2 == 1)
+									verts [d].y = (verts [d - (a + 1) * a / c].y +
+										verts [d + (a + 1) * a / c].y) / 2;
+							}
 						}
 					}
-				}
 
-				if (c) {
-					float d = height / Mathf.Pow (2, a + 1);
-					verts [b] = verts [b] + Vector3.up * Random.Range (-d, d);
+					if (e) {
+						float f = height / c;
+						verts [d].y = Mathf.Clamp (verts [d].y + Random.Range (-f, f), 0, height);
+					}
 				}
-
+			}
+			if (center)
+				center = false;
+			else {
+				center = true;
 				b++;
 			}
-			mesh.vertices = verts;
 		}
-		mesh = Remove_Doubles (mesh);
+
+		int[] tris = new int[6 * a * a];
+		for (int z = 0; z < a; z++) {
+			for (int x = 0; x < a; x++) {
+				int b = 6 * (z * a + x);
+
+				int vc = z * (a + 1) + x;
+				int vr = vc + 1;
+				int vu = vc + a + 1;
+				int vru = vc + a + 2;
+
+				if (Mathf.Abs (verts [vr].y - verts [vu].y) < Mathf.Abs (verts [vru].y - verts [vc].y)) {
+					tris [b] = vc;
+					tris [b + 1] = vu;
+					tris [b + 2] = vru;
+					tris [b + 3] = vc;
+					tris [b + 4] = vru;
+					tris [b + 5] = vr;
+				} else {
+					tris [b] = vc;
+					tris [b + 1] = vu;
+					tris [b + 2] = vr;
+					tris [b + 3] = vu;
+					tris [b + 4] = vru;
+					tris [b + 5] = vr;
+				}
+			}
+		}
+
+		Mesh mesh = new Mesh ();
+		mesh.vertices = verts;
+		mesh.triangles = tris;
 		mesh.RecalculateNormals ();
 		yield return mesh;
 	}
