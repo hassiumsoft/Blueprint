@@ -31,8 +31,10 @@ public class AddMapPanel : BPPanel {
 
 			//TODO マップ追加を非同期に対応させる
 			MapManager.saveMap (new Map (mapname));
-			selectMapPanel.reloadContents ();
+			//selectMapPanel.reloadContents ();
 			show (false);
+			selectMapPanel.show (false);
+			Main.main.StartCoroutine (Main.openMap (mapname));
 		}
 	}
 }

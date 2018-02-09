@@ -29,7 +29,7 @@ public class SelectMapPanel : BPPanel, ScrollController.Listener {
 		}
 	}
 
-	public void show (bool show) {
+	new public void show (bool show) {
 		base.show (show);
 		if (!show) {
 			resetSetting ();

@@ -2,7 +2,7 @@
 
 public class PausePanel : BPPanel {
 
-	public void show (bool show) {
+	new public void show (bool show) {
 		base.show (show);
 		if (show) {
 			Main.playingmap.Pause ();

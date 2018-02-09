@@ -6,8 +6,6 @@ using UnityEngine;
 [Serializable]
 public class Player : MapObject {
 	public const string KEY_NAME = "NAME";
-	public const string KEY_POS = "POS";
-	public const string KEY_ROTATION = "ROT";
 
 	//TODO スキン別にPrefabを作成
 	public static PlayerEntity playerPrefab;
@@ -33,9 +31,10 @@ public class Player : MapObject {
 	}
 
 	public override void generate () {
-		if (entity == null) {
+		if (entity == null)
 			(entity = GameObject.Instantiate (playerPrefab)).init (this);
-		}
+		else
+			reloadEntity ();
 	}
 
 	public void respawn () {

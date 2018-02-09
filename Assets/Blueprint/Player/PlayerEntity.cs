@@ -17,7 +17,7 @@ public class PlayerEntity : MapEntity {
 		lastPos = transform.position;
 		lastRot = transform.rotation;
 
-		(p_camera = FindObjectOfType<Camera> ()).transform.SetParent (this.transform);
+		(p_camera = Main.main.mainCamera).transform.SetParent (this.transform);
 		p_camera.transform.localPosition = CAMERA_POS;
 		p_camera.transform.localEulerAngles = CAMERA_ANGLE;
 		p_camera.clearFlags = CameraClearFlags.Skybox;

@@ -6,6 +6,8 @@ using UnityEngine;
 
 [Serializable]
 public class Chunk : ISerializable {
+	//チャンクの読み込み速度目標値: 2.17013888...9チャンク/秒 (1000km/hで動くものに対応させるため。チャンク生成速度とは異なる）
+
 	public const string KEY_X = "X";
 	public const string KEY_Z = "Z";
 	public const string KEY_GENERATED = "GENERATED";
@@ -16,31 +18,11 @@ public class Chunk : ISerializable {
 	//チャンクの頂点数: 3072 (4*4^4*3 = 4*4^fineness*3)
 	public const int size = 128; //チャンクサイズ（変更してはいけない）
 
-	//TODO スペックに応じて荒い地形から細かい地形まで自動的に調整されるようにする。設定でも変更可能にする
+	//地形の高さ。一時的な変数。
+	public static float height = 4f;
 
-	//TODO 必須チャンク範囲を作り、必須チャンク範囲を優先して生成する。
-	//優先されないチャンクは読み込み停止などの管理を自動的に行うようにする。
-	//もしくは、同時生成チャンク数を管理する。
-
-	//TODO （優先）不要になったチャンクのアンロード
-
-	//高低差の基準値（基準値よりズレが生じる場合がある。変更可能）
-	//TODO 0.2fにしたらColliderの作成エラーが発生 [Physics.PhysX] ConvexHullBuilder::CreateTrianglesFromPolygons: convex hull has a polygon with less than 3 vertices!
-	public const float height = 4f;
-
-	//フラクタル地形の細かさ（細分化回数）
-	//3では20秒程度かかった。 4では1分程度かかった。 5では7分~28分程度かかった。 6では数十分~数時間以上の時間がかかった。
-	//7ではメッシュの超点数が制限(65000)を超えてしまうので不可能。
-	//描画を優先しない場合はfinenessが3で4/1秒。 4では2~3秒程度。
-	//スペックによる差があるため3倍かかると見込んだほうが良い。
-	//理想の細かさは6~7 (size/2^fineness=1になる数値)
-	//TODO 細分化回数の違うメッシュをつなぎ合わせるようにする
-	public const int fineness = 4;
-
-	//TODO チャンクの読み込み速度目標値: 2.17013888...9チャンク/秒 (1000km/hで動くものに対応させるため。チャンク生成速度とは異なる）
-
-	//TODO 溜めようとすると12まで溜まるがその分生成が遅くなってしまう
-	public const int max_generation = 1; //最大同時生成チャンク数
+	public const int fineness = 4;//フラクタル地形の細かさ（細分化回数）
+	public const int max_generation = 1; //最大同時生成チャンク数。数値に理由はない。
 
 	private static List<Chunk> generatingChunks = new List<Chunk> (); //生成中のチャンク数（非同期のみ）
 
@@ -68,7 +50,7 @@ public class Chunk : ISerializable {
 	//地形データ。後にMapObject化して複数の地形を組み合わせられるようにする。
 	public Mesh mesh;
 	private bool _generating = false;
-	public bool generating { get { return _generating; } private set { _generating = value; } } //チャンク生成中
+	public bool generating { get { return _generating; } private set { _generating = value; } } //非同期でチャンク生成中
 	private bool stopGenerating = false; //現在実行中の生成を停止するか（非同期のみ）
 	private IEnumerator routine;
 
@@ -93,7 +75,7 @@ public class Chunk : ISerializable {
 		x = info.GetInt32 (KEY_X);
 		z = info.GetInt32 (KEY_Z);
 		generated = info.GetBoolean (KEY_GENERATED);
-		SerializableMesh sMesh = ((SerializableMesh)info.GetValue (KEY_MESH, typeof(SerializableMesh)));
+		SerializableMesh sMesh = (SerializableMesh)info.GetValue (KEY_MESH, typeof(SerializableMesh));
 		if (sMesh != null) {
 			mesh = sMesh.toMesh ();
 		}
@@ -137,7 +119,6 @@ public class Chunk : ISerializable {
 			return false;
 
 		stopAsyncGenerating ();
-		generating = true;
 		Debug.Log (DateTime.Now + " チャンク生成開始 X: " + x + " Z: " + z);
 
 		//地形の生成
@@ -171,7 +152,6 @@ public class Chunk : ISerializable {
 		//森林の生成
 		generateForest ();
 
-		generating = false;
 		generated = true;
 		Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
 
@@ -241,7 +221,7 @@ public class Chunk : ISerializable {
 
 			Chunk chunk = map.getChunk (x2, z2);
 			if (chunk.generating) {
-				//他の未生成だったチャンクが待機中に生成を開始している場合があるため、
+				//隣接するチャンクが待機中に生成を開始している場合があるため、
 				//自チャンクの生成を後に回し最初からやり直す。
 				generating = false;
 				generatingChunks.Remove (this);
@@ -253,21 +233,13 @@ public class Chunk : ISerializable {
 			if (chunk.generated) {
 				List<Vector3> verts1 = new List<Vector3> (chunk.mesh.vertices);
 				for (int b = 0; b < verts1.Count;) {
-					//ゲームプレイに影響を与えない程度にマップ生成を優先する
-					//if (Main.yrCondition ())
-					//	yield return null;
-					if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size)
+					if (verts1 [b].x == 0 || verts1 [b].z == 0 || verts1 [b].x == size || verts1 [b].z == size) {
+						verts1 [b] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
 						b++;
-					else
+					} else
 						verts1.RemoveAt (b);
 				}
-				Vector3[] verts2 = verts1.ToArray ();
-				for (int c = 0; c < verts2.Length; c++) {
-					//if (Main.yrCondition ())
-					//	yield return null;
-					verts2 [c] += (x2 - x) * Vector3.right * size + (z2 - z) * Vector3.forward * size;
-				}
-				points.AddRange (verts2);
+				points.AddRange (verts1);
 
 				if (!e_u) {
 					e_ul = true;
@@ -330,12 +302,15 @@ public class Chunk : ISerializable {
 	private void stopAsyncGenerating () {
 		if (routine != null) {
 			Main.main.StopCoroutine (routine);
-			generating = false; //TODO 同期による生成中でもfalseにしてしまう可能性がある
+			generating = false;
 			generatingChunks.Remove (this);
 		}
 	}
 
 	private void generateForest () {
+		if (UnityEngine.Random.Range (0, 4) != 0)
+			return;
+		
 		float px = x * size + UnityEngine.Random.Range (0, size);
 		float pz = z * size + UnityEngine.Random.Range (0, size);
 		map.addObject (new TreeObject (map, new Vector3 (px, map.getTerrainHeight (px, pz), pz), Quaternion.Euler (new Vector3 (0, UnityEngine.Random.Range (0f, 360f)))));
@@ -350,20 +325,11 @@ public class Chunk : ISerializable {
 
 	public static void b () {
 		//生成がキャンセルされたチャンクを非同期で生成させる
-		int n = 0;
-		for (; generatingChunks.Count < max_generation && n < generateCancelledChunks.Count; n++) {
-			Main.main.StartCoroutine (generateCancelledChunks [n].generateAsync ());
+		for (int n = 0; generatingChunks.Count < max_generation && n < generateCancelledChunks.Count; n++) {
+			Chunk c = generateCancelledChunks [n];
+			generateCancelledChunks.RemoveAt (n);
+			Main.main.StartCoroutine (c.generateAsync ());
 		}
-		generateCancelledChunks.RemoveRange (0, n);
-	}
-
-	public static void c () {
-		//生成がキャンセルされたチャンクを同期で生成させる
-		int n = 0;
-		for (; generatingChunks.Count < max_generation && n < generateCancelledChunks.Count; n++) {
-			generateCancelledChunks [n].generate ();
-		}
-		generateCancelledChunks.RemoveRange (0, n);
 	}
 
 	public static void stopAllGenerating () {
@@ -388,8 +354,8 @@ public class Chunk : ISerializable {
 			meshcollider = entity.gameObject.AddComponent<MeshCollider> ();
 
 		meshrenderer.material = Main.main.mat; //TODO 一時的。（Main.csも確認）
-		//meshcollider.convex = true;
 
+		//meshcollider.convex = true;
 		meshcollider.sharedMesh = meshfilter.sharedMesh = mesh;
 	}
 }
