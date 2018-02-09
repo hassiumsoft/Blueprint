@@ -25,7 +25,7 @@ public class CameraMover : MonoBehaviour {
 				target = Main.masterPlayer.playerEntity.transform;
 			}
 		} else {
-			bool c = Main.playingmap != null; //操作可能か
+			bool c = Main.playingmap != null && !Main.playingmap.pause; //操作可能か
 			float h = Input.GetAxis ("Horizontal");
 			float v = Input.GetAxis ("Vertical");
 
