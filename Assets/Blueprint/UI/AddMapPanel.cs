@@ -4,6 +4,7 @@ using UnityEngine.UI;
 public class AddMapPanel : BPPanel {
 	public SelectMapPanel selectMapPanel;
 	public InputField mapnameInput;
+    public InputField mapmodeInput;
 
 	void OnEnable () {
 		mapnameInput.text = MapManager.getRandomMapName ();

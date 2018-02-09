@@ -22,6 +22,23 @@ public class SettingPanel : BPPanel {
 	public Text bloomText;
 	public Toggle bloomToggle;
 
+	/*public InputField secretgate;
+    public string passon;
+    public string passoff;
+    public Text DebugText;
+    public bool debug;*/
+	
+    /*void Start()
+    {
+        secretgate = GetComponent<InputField>();
+
+        ResetString(secretgate.text);
+        ActivateIF(secretgate);
+
+        passon = "68098898aa";
+        passoff = "423324434bb";
+    }*/
+
 	void Update () {
 		drawDistanceText.text = drawDistanceText_DEF + ": " + (int)drawDistanceSlider.value;
 		bgmVolumeText.text = bgmVolumeText_DEF + ": " + (int)(bgmVolumeSlider.value * 100f);
@@ -32,6 +49,24 @@ public class SettingPanel : BPPanel {
 		if (Input.GetKeyDown (KeyCode.Escape)) {
 			show (false);
 		}
+        /*if (Input.GetKeyDown(KeyCode.KeypadEnter))
+        {
+            if (secretgate.text == passon)
+            {
+                debug = true;
+            }
+            if (secretgate.text == passoff)
+            {
+               debug = false;
+            }
+        }
+        if (debug)
+        {
+            DebugText.text = "welcome to debug mode.";
+        }else
+        {
+            DebugText.text = "";
+        }*/
 	}
 
 	void load () {
@@ -50,6 +85,16 @@ public class SettingPanel : BPPanel {
 		contrastStretchToggle.isOn = Main.contrastStretch;
 		bloomToggle.isOn = Main.bloom;
 	}
+
+    void ResetString(string A)
+    {
+        A = "";
+    }
+
+    void ActivateIF(InputField A)
+    {
+        A.ActivateInputField();
+    }
 
 	new public void show (bool show) {
 		if (show) {
