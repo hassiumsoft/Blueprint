@@ -131,7 +131,8 @@ public class Map : ISerializable {
 		float r = ABYSS_HEIGHT;
 
 		Chunk chunk = getChunk (Map.getChunkX (x), Map.getChunkZ (z));
-		chunk.generateChunk ();
+		if (chunk.mesh == null)
+			chunk.generateChunk ();
 
 		float w = 32768f;
 
@@ -164,6 +165,7 @@ public class Map : ISerializable {
 	}
 
 	public void DestroyAll () {
+		Chunk.stopAllGenerating ();
 		DestroyPlayerEntities ();
 		DestroyChunkEntities ();
 	}

@@ -80,16 +80,12 @@ public class PlayerEntity : MapEntity {
 				for (int z = -a; z <= a; z++) {
 					if (x == -a || x == a || z == -a || z == a) {
 						Chunk chunk = obj.chunk.map.getChunk (cx + x, cz + z);
-						chunk.generateObj ();
 						if (chunk.generated)
-							continue;
-						if (a == 0) {
+							chunk.generateObj ();
+						else if (a == 0)
 							chunk.generate ();
-						}
-						if (chunk.generating)
-							continue;
-
-						Main.main.StartCoroutine (chunk.generateAsync ());
+						else
+							Main.main.StartCoroutine (chunk.generateAsync ());
 					}
 				}
 			}

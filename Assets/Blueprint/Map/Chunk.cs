@@ -49,8 +49,10 @@ public class Chunk : ISerializable {
 
 	//地形データ。後にMapObject化して複数の地形を組み合わせられるようにする。
 	public Mesh mesh;
-	private bool _generating = false;
-	public bool generating { get { return _generating; } private set { _generating = value; } } //非同期でチャンク生成中
+	private bool _generatingSync = false;
+	public bool generatingSync { get { return _generatingSync; } private set { _generatingSync = value; } } //同期でチャンク生成中
+	private bool _generatingAsync = false;
+	public bool generatingAsync { get { return _generatingAsync; } private set { _generatingAsync = value; } } //非同期でチャンク生成中
 	private bool stopGenerating = false; //現在実行中の生成を停止するか（非同期のみ）
 	private IEnumerator routine;
 
@@ -115,10 +117,11 @@ public class Chunk : ISerializable {
 
 	//地形データなどを生成するメソッド。実体は生成しない。
 	public bool generateChunk () {
-		if (generated || generating)
+		if (generated || generatingSync)
 			return false;
 
 		stopAsyncGenerating ();
+		generatingSync = true;
 		Debug.Log (DateTime.Now + " チャンク生成開始 X: " + x + " Z: " + z);
 
 		//地形の生成
@@ -127,7 +130,7 @@ public class Chunk : ISerializable {
 			for (int z2 = z - 1; z2 <= z + 1; z2++) {
 				if (x2 != x || z2 != z) {
 					Chunk chunk = map.getChunk (x2, z2);
-					if (chunk.generating)
+					if (chunk.generatingAsync)
 						chunk.stopAsyncGenerating ();
 
 					if (chunk.generated && chunk.mesh != null) {
@@ -152,6 +155,7 @@ public class Chunk : ISerializable {
 		//森林の生成
 		generateForest ();
 
+		generatingSync = false;
 		generated = true;
 		Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
 
@@ -167,7 +171,7 @@ public class Chunk : ISerializable {
 	}
 
 	private IEnumerator a () {
-		if (generated || generating)
+		if (generated || generatingAsync)
 			yield break;
 
 		if (generatingChunks.Count >= max_generation) {
@@ -180,7 +184,7 @@ public class Chunk : ISerializable {
 			yield break;
 		}
 
-		generating = true;
+		generatingAsync = true;
 		generatingChunks.Add (this);
 		Debug.Log (DateTime.Now + " チャンク生成開始(Async) X: " + x + " Z: " + z);
 
@@ -220,10 +224,10 @@ public class Chunk : ISerializable {
 			}
 
 			Chunk chunk = map.getChunk (x2, z2);
-			if (chunk.generating) {
+			if (chunk.generatingAsync) {
 				//隣接するチャンクが待機中に生成を開始している場合があるため、
 				//自チャンクの生成を後に回し最初からやり直す。
-				generating = false;
+				generatingAsync = false;
 				generatingChunks.Remove (this);
 				generateCancelledChunks.Add (this);
 				Debug.Log (DateTime.Now + " チャンク生成中止(13) X: " + x + " Z: " + z);
@@ -279,7 +283,7 @@ public class Chunk : ISerializable {
 		if (_routine.Current is Mesh) {
 			if (stopGenerating) {
 				Debug.Log (DateTime.Now + " チャンク生成中止(14) X: " + x + " Z: " + z);
-				generating = false;
+				generatingAsync = false;
 				stopGenerating = false;
 				generatingChunks.Remove (this);
 				yield break;
@@ -291,7 +295,7 @@ public class Chunk : ISerializable {
 		//森林の生成
 		generateForest ();
 
-		generating = false;
+		generatingAsync = false;
 		generatingChunks.Remove (this);
 		generated = true;
 		Debug.Log (DateTime.Now + " チャンク生成完了 X: " + x + " Z: " + z);
@@ -300,11 +304,8 @@ public class Chunk : ISerializable {
 	}
 
 	private void stopAsyncGenerating () {
-		if (routine != null) {
-			Main.main.StopCoroutine (routine);
-			generating = false;
-			generatingChunks.Remove (this);
-		}
+		c ();
+		generatingChunks.Remove (this);
 	}
 
 	private void generateForest () {
@@ -325,16 +326,24 @@ public class Chunk : ISerializable {
 
 	public static void b () {
 		//生成がキャンセルされたチャンクを非同期で生成させる
-		for (int n = 0; generatingChunks.Count < max_generation && n < generateCancelledChunks.Count; n++) {
-			Chunk c = generateCancelledChunks [n];
-			generateCancelledChunks.RemoveAt (n);
-			Main.main.StartCoroutine (c.generateAsync ());
+		while (generatingChunks.Count < max_generation && generateCancelledChunks.Count > 0) {
+			Main.main.StartCoroutine (generateCancelledChunks [0].generateAsync ());
+			generateCancelledChunks.RemoveAt (0);
 		}
 	}
 
 	public static void stopAllGenerating () {
 		foreach (Chunk chunk in generatingChunks) {
-			chunk.stopAsyncGenerating ();
+			chunk.c ();
+		}
+		generatingChunks.Clear ();
+		generateCancelledChunks.Clear ();
+	}
+
+	private void c () {
+		if (routine != null) {
+			Main.main.StopCoroutine (routine);
+			generatingAsync = false;
 		}
 	}
 
