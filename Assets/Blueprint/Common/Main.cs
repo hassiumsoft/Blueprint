@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using UnityStandardAssets.ImageEffects;
 
 public class Main : MonoBehaviour {
-	public const string VERSION = "0.001alpha";
+	public const string VERSION = "KtBt0.0.1(Based on Alpha 0.0.1)";
 	public const string KEY_FIRSTSTART = "FIRSTSTART";
 	public const string KEY_SETUPPED = "SETUPPED";
 	public const string KEY_DRAW_DISTANCE = "DRAWDISTANCE";
