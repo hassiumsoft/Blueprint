@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System;
+using System.IO;
 
 
 public class DialogPanel : BPPanel {
     Sprite informationpng = Resources.Load<Sprite>("Textures/dialog/information");
     Sprite errorpng = Resources.Load<Sprite>("Textures/dialog/error");
     Sprite stoppedpng = Resources.Load<Sprite>("Textures/dialog/stopped");
+    public string errorlog = ""
     public Text Message;
     public Image IconImage;
     public string how = "noerror";
@@ -45,10 +48,11 @@ public class DialogPanel : BPPanel {
         {
             if(how == "error")
             {
-
+                StreamWriter writer = new StreamWriter("")
             }
         }
     }
+    
 }
 
 
