@@ -1,24 +1,54 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.UI;
 
 
-public class DialogPanel : MonoBehaviour {
+public class DialogPanel : BPPanel {
     Sprite informationpng = Resources.Load<Sprite>("Textures/dialog/information");
     Sprite errorpng = Resources.Load<Sprite>("Textures/dialog/error");
-    Sprite stopped = Resources.Load<Sprite>("Textures/dialog/stopped");
-    //TODO IconImageをIconとして読み込み
-    // Use this for initialization
-    void Start () {
-		
-	}
+    Sprite stoppedpng = Resources.Load<Sprite>("Textures/dialog/stopped");
+    public Text Message;
+    public Image IconImage;
+    public string how = "noerror";
 	
 	// Update is called once per frame
-	void Update () {
-		
-	}
-    public static void information()
-    {
+	void Update () {}
 
+    public void information(string errorabout)
+    {
+        IconImage.sprite = informationpng;
+        Message.text = errorabout;
+        how = "info";
+        base.show(true);
+    }
+
+    public void error(string errorabout)
+    {
+        IconImage.sprite = errorpng;
+        Message.text = errorabout;
+        how = "error";
+        base.show(true);
+    }
+
+    public void stopped(string whystopped)
+    {
+        IconImage.sprite = stoppedpng;
+        Message.text = whystopped;
+        how = "stopped";
+        base.show(true);
+        
+    }
+
+    public void CloseButton()
+    {
+        base.show(false);
+        if (how == "info")
+        {
+            if(how == "error")
+            {
+
+            }
+        }
     }
 }
+
+

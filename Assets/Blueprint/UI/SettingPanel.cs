@@ -70,19 +70,31 @@ public class SettingPanel : BPPanel {
 	}
 
 	void load () {
+
+        //描画距離スライダー
 		drawDistanceSlider.minValue = Main.MIN_DRAW_DISTANCE;
 		drawDistanceSlider.maxValue = Main.MAX_DRAW_DISTANCE;
 		drawDistanceSlider.value = Main.drawDistance;
+
+        //BGM音量調整スライダー
 		bgmVolumeSlider.minValue = Main.MIN_BGM_VOLUME;
 		bgmVolumeSlider.maxValue = Main.MAX_BGM_VOLUME;
 		bgmVolumeSlider.value = Main.bgmVolume;
+
+        //SE音量調整スライダー
 		seVolumeSlider.minValue = Main.MIN_SE_VOLUME;
-		seVolumeSlider.maxValue = Main.MAX_SE_VOLUME;
+        seVolumeSlider.maxValue = Main.MAX_SE_VOLUME;
 		seVolumeSlider.value = Main.seVolume;
+
+        //マウス感度調節スライダー
 		dragRotSpeedSlider.minValue = Main.MIN_DRAG_ROT_SPEED;
 		dragRotSpeedSlider.maxValue = Main.MAX_DRAG_ROT_SPEED;
 		dragRotSpeedSlider.value = Main.dragRotSpeed;
+
+        //目のチン小帯調節スライダー
 		contrastStretchToggle.isOn = Main.contrastStretch;
+
+        //ひだまりスライダー
 		bloomToggle.isOn = Main.bloom;
 	}
 
@@ -102,7 +114,6 @@ public class SettingPanel : BPPanel {
 		}
 		base.show (show);
 	}
-
 	public void save () {
 		Main.drawDistance = (int)drawDistanceSlider.value;
 		Main.bgmVolume = bgmVolumeSlider.value;
