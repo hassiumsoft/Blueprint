@@ -15,10 +15,12 @@ public class TreeInfo {
 		this.age = age;
 	}
 
+	//双子葉類
 	public bool isMagnoliopsida () {
 		return type == TreeType.Shirakashi;
 	}
 
+	//単子葉類
 	public bool isLiliopsida () {
 		return false;
 	}
