@@ -17,9 +17,8 @@ public class CameraMover : MonoBehaviour {
 	float lv = 0f;
 
 	//自分で視点を変えることが出来る。
-	//カメラは後からついてくる挙動になっており、カメラが一定距離以上離れないようになっている。
-	//乗り物向けなカメラ。
-	void Update () {
+	//カメラは後からついてくる挙動になっており、カメラが一定距離以上離れないようになっているため、乗り物向けなカメラになっている。
+	void LateUpdate () {
 		if (target == null) {
 			if (Main.masterPlayer != null && Main.masterPlayer.playerEntity != null) {
 				target = Main.masterPlayer.playerEntity.transform;
