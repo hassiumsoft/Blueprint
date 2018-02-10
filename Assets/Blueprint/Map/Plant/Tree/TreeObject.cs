@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using UnityEngine;
 
 [Serializable]
-public class TreeObject : MapObject {
+public class TreeObject : PlantObject {
 	public const string KEY_TYPE = "TYPE";
 	public const string KEY_MESH = "MESH";
 
@@ -47,7 +47,7 @@ public class TreeObject : MapObject {
 	public override void generate () {
 		if (!generated) {
 			type = TreeType.Shirakashi;
-			mesh = BPMesh.generateTree (new TreeInfo (type, TreeInfo.getMaxHeight (type) / TreeInfo.getGrowSpeed (type)));
+			mesh = BPMesh.generateTree (new TreeInfo (type, age));
 			generated = true;
 		}
 
