@@ -11,6 +11,7 @@ public class DialogPanel : BPPanel {
     public Image IconImage;
     public string how = "noerror";
     public string aboutoferror;
+    public string txtfile;
 	
 	// Update is called once per frame
 	void Update () {}
@@ -43,28 +44,31 @@ public class DialogPanel : BPPanel {
 
     }
 
-    public void CloseButton()
+    public void Close()
     {
+        
+        
+        if (how == "error")
+        {
+            //writelog(aboutoferror, "error", txtfile);
+            base.show(false);
+        }else
+        if(how == "stopped")
+        {
+            //writelog(aboutoferror, "stopped", txtfile);
+            base.show(false);
+        }else
         if (how == "info")
         {
-            if(how == "error")
-            {
-                writelog(aboutoferror, "error");
-                base.show(false);
-            }
-            if(how == "stopped")
-            {
-                writelog(aboutoferror, "stopped");
-                base.show(false);
-            }
             base.show(false);
+
         }
     }
 
-    public void writelog(string errorabout, string howdoes)
+    public void writelog(string errorabout, string howdoes, string textfile)
     {
         string now = System.DateTime.Now.ToString();
-        StreamWriter writer = new StreamWriter("errorlogs/errorlog");
+        StreamWriter writer = new StreamWriter(textfile, true);
         writer.WriteLine("time-stamp:" + now + "Blueprint has" + howdoes + "\nabout:" + errorabout + "----------[EOL]----------\n");
         writer.Flush();
         writer.Close();
