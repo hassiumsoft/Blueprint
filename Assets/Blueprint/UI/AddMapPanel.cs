@@ -4,17 +4,16 @@ using UnityEngine.UI;
 public class AddMapPanel : BPPanel {
 	public SelectMapPanel selectMapPanel;
 	public InputField mapnameInput;
-    public InputField mapmodeInput;
+    public Dropdown mapmodeInput;
 
-    GameObject pv;
-    DialogPanel DialogPanelScript;
+    public GameObject pv;
+    public DialogPanel DialogPanelScript;
 
     void Start()
     {
-        pv = GameObject.Find("DialogPanel");
         DialogPanelScript = pv.GetComponent<DialogPanel>();
     }
-
+    
 
 	void OnEnable () {
 		mapnameInput.text = MapManager.getRandomMapName ();
@@ -30,7 +29,7 @@ public class AddMapPanel : BPPanel {
 		string mapname = mapnameInput.text.Trim ();
 
 		if (mapname.Length == 0) {
-            DialogPanelScript.information("map Length is too lower");
+            DialogPanelScript.error("map Length is too lower");
         } else {
 			string[] a = MapManager.getMapList ();
 			for (int b = 0; b < a.Length; b++) {
