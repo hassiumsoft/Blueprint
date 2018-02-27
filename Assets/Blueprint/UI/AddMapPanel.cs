@@ -29,7 +29,7 @@ public class AddMapPanel : BPPanel {
 		string mapname = mapnameInput.text.Trim ();
 
 		if (mapname.Length == 0) {
-            DialogPanelScript.error("map Length is too lower");
+            DialogPanelScript.error("マップ名が入力されていません。");
         } else {
 			string[] a = MapManager.getMapList ();
 			for (int b = 0; b < a.Length; b++) {

@@ -11,6 +11,7 @@ public class BPCanvas : MonoBehaviour {
 	public static UnsupportedMapPanel unsupportedMapPanel;
 	public static DeleteMapPanel deleteMapPanel;
 	public static DialogPanel dialogPanel;
+    public static QuestionPanel questionPanel;
 
 	void Awake () {
 		titlePanel = GetComponentInChildren<TitlePanel> (true);
