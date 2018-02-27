@@ -10,7 +10,9 @@ public class Map : ISerializable {
 	public const string KEY_CHUNKS = "CHUNKS";
 	public const string KEY_PLAYERS = "PLAYERS";
 	public const string KEY_TIME = "TIME";
+	public const string KEY_FAST_FORWARDING = "FASTFORWARDING";
 	public const float ABYSS_HEIGHT = -100f;
+	public const float FAST_FORWARDING_SPEED = 72f; //早送り中の速度。実時間20分でゲームが1日進む
 
 	//・複数のマップを同時に読み込んではいけない。
 
@@ -22,7 +24,7 @@ public class Map : ISerializable {
 	public List<Chunk> chunks { get; private set; } //TODO 後にチャンク呼び出しが遅くなる可能性があるためHashMapなどで高速化する必要がある
 	public List<Player> players { get; private set; }
 	public long time { get; private set; } //マップの時間。0時から始まり1tickが1msである。
-	public bool pause { get; private set; } //ポーズ中か
+	public bool fastForwarding { get; private set; } //早送り
 
 	//TODO マップに変更があるかどうかの判定（自動セーブ用）
 
@@ -32,6 +34,7 @@ public class Map : ISerializable {
 		chunks = new List<Chunk> ();
 		players = new List<Player> ();
 		time = 6 * 60 * 60000; //朝6時からスタート
+		fastForwarding = false;
 	}
 
 	protected Map (SerializationInfo info, StreamingContext context) {
@@ -46,6 +49,7 @@ public class Map : ISerializable {
 		for (int a = 0; a < players.Count; a++)
 			players [a].chunk = getChunk (players [a].getChunkX (), players [a].getChunkZ ());
 		time = info.GetInt64 (KEY_TIME);
+		fastForwarding = info.GetBoolean (KEY_FAST_FORWARDING);
 	}
 
 	public virtual void GetObjectData (SerializationInfo info, StreamingContext context) {
@@ -56,6 +60,7 @@ public class Map : ISerializable {
 		info.AddValue (KEY_CHUNKS, chunks);
 		info.AddValue (KEY_PLAYERS, players);
 		info.AddValue (KEY_TIME, time);
+		info.AddValue (KEY_FAST_FORWARDING, fastForwarding);
 	}
 
 	public int getChunkIndex (int chunkx, int chunkz) {
@@ -170,17 +175,13 @@ public class Map : ISerializable {
 		DestroyChunkEntities ();
 	}
 
-	public void Pause () {
-		pause = true;
-	}
-
-	public void Resume () {
-		pause = false;
-	}
-
 	//時間が経過するメソッド。ticksには経過時間を指定。
 	public void TimePasses (long ticks) {
 		time += ticks;
+	}
+
+	public void setFastForwarding (bool fastForwarding) {
+		this.fastForwarding = fastForwarding;
 	}
 
 	public long getRawHours () {

@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityStandardAssets.ImageEffects;
+using UnityEngine.PostProcessing;
 
 public class Main : MonoBehaviour {
 	public const string VERSION = "0.001alpha";
@@ -15,7 +15,6 @@ public class Main : MonoBehaviour {
 	public const string KEY_BGM_VOLUME = "BGM_VOL";
 	public const string KEY_SE_VOLUME = "SE_VOL";
 	public const string KEY_DRAG_ROT_SPEED = "DRAG_ROT_SPEED";
-	public const string KEY_CONTRAST_STRETCH = "CONTRAST_STRETCH";
 	public const string KEY_BLOOM = "BLOOM";
 
 	public const int MIN_DRAW_DISTANCE = 1;
@@ -54,6 +53,9 @@ public class Main : MonoBehaviour {
 	public static bool contrastStretch = DEFAULT_CONTRAST_STRETCH;
 	public static bool bloom = DEFAULT_BLOOM;
 
+	public static bool _pause = false;
+	public static bool pause { get; private set; } //ポーズ
+
 	private static float lasttick = 0; //時間を進ませた時の余り
 	private static float lasttick_few = 0; //頻繁に変更しないするための計算。この機能は一秒ごとに処理を行う。
 	public Light sun; //太陽
@@ -70,10 +72,7 @@ public class Main : MonoBehaviour {
 	public PlayerEntity playerPrefab;
 
 	void Awake () {
-		Main.main = this;
-
-		//QualitySettings.vSyncCount = 0;//初期値は1
-		Application.targetFrameRate = 60;//初期値は-1
+		main = this;
 
 		//ゲーム起動日時の取得
 		string a = PlayerPrefs.GetString (KEY_FIRSTSTART);//変数aは使いまわしているので注意
@@ -130,7 +129,6 @@ public class Main : MonoBehaviour {
 		bgmVolume = PlayerPrefs.GetFloat (KEY_BGM_VOLUME, DEFAULT_BGM_VOLUME);
 		seVolume = PlayerPrefs.GetFloat (KEY_SE_VOLUME, DEFAULT_SE_VOLUME);
 		dragRotSpeed = PlayerPrefs.GetFloat (KEY_DRAG_ROT_SPEED, DEFAULT_DRAG_ROT_SPEED);
-		contrastStretch = PlayerPrefs.GetInt (KEY_CONTRAST_STRETCH, DEFAULT_CONTRAST_STRETCH ? 1 : 0) == 1;
 		bloom = PlayerPrefs.GetInt (KEY_BLOOM, DEFAULT_BLOOM ? 1 : 0) == 1;
 		saveSettings ();
 
@@ -153,37 +151,40 @@ public class Main : MonoBehaviour {
 			screenShot ();
 		} else if (Input.GetKeyDown (KeyCode.Escape)) {
 			if (playingmap != null) {
-				if (!BPCanvas.settingPanel.isShowing () && !BPCanvas.titleBackPanel.isShowing ()) {
-					BPCanvas.pausePanel.show (!BPCanvas.pausePanel.isShowing ());
-				}
+				if (!BPCanvas.settingPanel.isShowing () && !BPCanvas.titleBackPanel.isShowing ())
+					setPause (!pause);
 			}
 		}
 
 		if (playingmap != null) {
 			if (bgmSource.isPlaying)
 				bgmSource.Stop ();
-
-			if (!playingmap.pause) {
-				//時間を進ませる
-				lasttick += Time.deltaTime * 1000f;
-				lasttick_few += Time.deltaTime;
-
-				int ticks = Mathf.FloorToInt (lasttick);
-				lasttick -= ticks;
-
-				int ticks_few = Mathf.FloorToInt (lasttick_few);
-				lasttick_few -= ticks_few;
-				if (ticks_few != 0) {
-					reloadLighting ();
-				}
-
-				if (ticks != 0) {
-					playingmap.TimePasses (ticks);
-				}
-			}
 		} else if (!bgmSource.isPlaying) {
 			bgmSource.clip = titleClips [UnityEngine.Random.Range (0, titleClips.Length)];
 			bgmSource.Play ();
+		}
+	}
+
+	void FixedUpdate () {
+		if (playingmap != null && !pause) {
+			//時間を進ませる
+			lasttick += Time.deltaTime * 1000f;
+			lasttick_few += Time.deltaTime;
+			if (playingmap.fastForwarding) {
+				lasttick *= Map.FAST_FORWARDING_SPEED;
+				lasttick_few *= Map.FAST_FORWARDING_SPEED;
+			}
+
+			int ticks = Mathf.FloorToInt (lasttick);
+			lasttick -= ticks;
+
+			int ticks_few = Mathf.FloorToInt (lasttick_few);
+			lasttick_few -= ticks_few;
+			if (ticks_few != 0)
+				reloadLighting ();
+
+			if (ticks != 0)
+				playingmap.TimePasses (ticks);
 		}
 	}
 
@@ -212,8 +213,7 @@ public class Main : MonoBehaviour {
 		PlayerPrefs.SetFloat (KEY_BGM_VOLUME, main.bgmSource.volume = bgmVolume);
 		PlayerPrefs.SetFloat (KEY_SE_VOLUME, main.seSource.volume = seVolume);
 		PlayerPrefs.SetFloat (KEY_DRAG_ROT_SPEED, dragRotSpeed);
-		PlayerPrefs.SetInt (KEY_CONTRAST_STRETCH, (main.mainCamera.GetComponent<ContrastStretch> ().enabled = contrastStretch) ? 1 : 0);
-		PlayerPrefs.SetInt (KEY_BLOOM, (main.mainCamera.GetComponent<BloomOptimized> ().enabled = bloom) ? 1 : 0);
+		PlayerPrefs.SetInt (KEY_BLOOM, (main.mainCamera.GetComponent<PostProcessingBehaviour> ().profile.bloom.enabled = bloom) ? 1 : 0);
 	}
 
 	public static IEnumerator openMap (string mapname) {
@@ -238,7 +238,10 @@ public class Main : MonoBehaviour {
 			BPCanvas.unsupportedMapPanel.show (true);
 		} else {
 			playingmap = map;
-			Main.main.reloadLighting ();
+			pause = false;
+			lasttick = 0;
+			lasttick_few = 0;
+			main.reloadLighting ();
 
 			int pid = playingmap.getPlayer ("master");//TODO 仮
 			if (pid == -1) {
@@ -247,7 +250,9 @@ public class Main : MonoBehaviour {
 				masterPlayer = playingmap.players [pid];
 			}
 			masterPlayer.generate ();
+			main.mainCamera.GetComponent<PostProcessingBehaviour> ().enabled = true;
 			BPCanvas.loadingMapPanel.show (false);
+			BPCanvas.playingPanel.show (true);
 
 			print (DateTime.Now + " マップを開きました: " + map.mapname);
 		}
@@ -259,12 +264,19 @@ public class Main : MonoBehaviour {
 
 			playingmap.DestroyAll ();
 			playingmap = null;
+			main.mainCamera.GetComponent<PostProcessingBehaviour> ().enabled = false;
 		}
 	}
 
 	//描画を優先して負荷のかかる処理を行うため、描画状態に応じてyield returnを行う条件を返すメソッド
 	public static bool yrCondition () {
 		return 1 / Time.deltaTime <= Main.min_fps;
+	}
+
+	public static void setPause (bool pause) {
+		Main.pause = pause;
+		BPCanvas.playingPanel.show (!pause);
+		BPCanvas.pausePanel.show (pause);
 	}
 
 	public void reloadLighting () {
@@ -274,6 +286,7 @@ public class Main : MonoBehaviour {
 
 		//頻繁に変更すると重くなる
 		float intensity = Mathf.Max (1f - Mathf.Abs ((r + 90f) / 180f - 1f), min_reflectionIntensity);
-		sun.intensity = RenderSettings.ambientIntensity = RenderSettings.reflectionIntensity = intensity;
+		//sun.intensity = RenderSettings.ambientIntensity = RenderSettings.reflectionIntensity = intensity;
+		sun.intensity = intensity;
 	}
 }
