@@ -1,3 +1,6 @@
 ﻿public class TitlePanel : BPPanel {
-	//TODO 何もない件
+
+	public void quitButton () {
+		Main.quit ();
+	}
 }
