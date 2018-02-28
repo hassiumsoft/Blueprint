@@ -7,7 +7,6 @@ public class SettingPanel : BPPanel {
 	public static string bgmVolumeText_DEF = "BGM音量";
 	public static string seVolumeText_DEF = "SE音量";
 	public static string dragRotSpeedText_DEF = "マウスドラッグによるカメラ回転速度";
-	public static string contrastStretchText_DEF = "コントラストストレッチ（目の筋肉）";
 	public static string bloomText_DEF = "ブルーム（光の漏れ）";
 	public Text drawDistanceText;
 	public Slider drawDistanceSlider;
@@ -44,7 +43,6 @@ public class SettingPanel : BPPanel {
 		bgmVolumeText.text = bgmVolumeText_DEF + ": " + (int)(bgmVolumeSlider.value * 100f);
 		seVolumeText.text = seVolumeText_DEF + ": " + (int)(seVolumeSlider.value * 100f);
 		dragRotSpeedText.text = dragRotSpeedText_DEF + ": " + Mathf.Round (dragRotSpeedSlider.value * 100f) / 100f;
-		contrastStretchText.text = contrastStretchText_DEF + ": ";
 		bloomText.text = bloomText_DEF + ": ";
 		if (Input.GetKeyDown (KeyCode.Escape)) {
 			show (false);
@@ -82,7 +80,6 @@ public class SettingPanel : BPPanel {
 		dragRotSpeedSlider.minValue = Main.MIN_DRAG_ROT_SPEED;
 		dragRotSpeedSlider.maxValue = Main.MAX_DRAG_ROT_SPEED;
 		dragRotSpeedSlider.value = Main.dragRotSpeed;
-		contrastStretchToggle.isOn = Main.contrastStretch;
 		bloomToggle.isOn = Main.bloom;
 	}
 
@@ -108,7 +105,6 @@ public class SettingPanel : BPPanel {
 		Main.bgmVolume = bgmVolumeSlider.value;
 		Main.seVolume = seVolumeSlider.value;
 		Main.dragRotSpeed = Mathf.Round (dragRotSpeedSlider.value * 100f) / 100f;
-		Main.contrastStretch = contrastStretchToggle.isOn;
 		Main.bloom = bloomToggle.isOn;
 		Main.saveSettings ();
 

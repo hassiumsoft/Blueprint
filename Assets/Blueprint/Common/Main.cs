@@ -29,7 +29,6 @@ public class Main : MonoBehaviour {
 	public const float MIN_DRAG_ROT_SPEED = 0.1f;
 	public const float MAX_DRAG_ROT_SPEED = 3f;
 	public const float DEFAULT_DRAG_ROT_SPEED = 0.5f;
-	public const bool DEFAULT_CONTRAST_STRETCH = true;
 	public const bool DEFAULT_BLOOM = true;
 
 	public static Main main;
@@ -50,7 +49,6 @@ public class Main : MonoBehaviour {
 	public static float bgmVolume = DEFAULT_BGM_VOLUME;
 	public static float seVolume = DEFAULT_SE_VOLUME;
 	public static float dragRotSpeed = DEFAULT_DRAG_ROT_SPEED;
-	public static bool contrastStretch = DEFAULT_CONTRAST_STRETCH;
 	public static bool bloom = DEFAULT_BLOOM;
 
 	public static bool _pause = false;
@@ -65,7 +63,6 @@ public class Main : MonoBehaviour {
 	public AudioSource seSource;
 	//TODO ポーズメニューでプレイヤーなどの動きを停止させる。
 	//TODO セーブ中の画面
-	//TODO 時間が実時間と同じスピードで進むため、時間を早く進ませたりスキップしたりする機能を追加する必要がある。
 
 	//TODO 以下、一時的
 	public Material mat; //Chunk.csにて使用中
