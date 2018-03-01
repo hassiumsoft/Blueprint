@@ -53,41 +53,41 @@ public class SettingPanel : BPPanel {
 	}
 
 	private void reload () {
-		drawDistanceSlider.value = lastDrawDistance = Main.drawDistance;
-		bgmVolumeSlider.value = lastBgmVolume = Main.bgmVolume;
-		seVolumeSlider.value = lastSeVolume = Main.seVolume;
-		dragRotSpeedSlider.value = lastDragRotSpeed = Main.dragRotSpeed;
-		bloomToggle.isOn = lastBloom = Main.bloom;
+		drawDistanceSlider.value = (lastDrawDistance = Main.drawDistance);
+		bgmVolumeSlider.value = (lastBgmVolume = Main.bgmVolume);
+		seVolumeSlider.value = (lastSeVolume = Main.seVolume);
+		dragRotSpeedSlider.value = (lastDragRotSpeed = Main.dragRotSpeed);
+		bloomToggle.isOn = (lastBloom = Main.bloom);
 	}
 
 	new public void show (bool show) {
-		if (show) {
+		if (show)
 			load ();
-		}
+		
 		base.show (show);
 	}
 
 	public void reflect () {
+		if (!isShowing ())
+			return;
+		
 		Main.drawDistance = (int)drawDistanceSlider.value;
 		Main.bgmVolume = bgmVolumeSlider.value;
 		Main.seVolume = seVolumeSlider.value;
 		Main.dragRotSpeed = Mathf.Round (dragRotSpeedSlider.value * 100f) / 100f;
 		Main.bloom = bloomToggle.isOn;
-	}
-
-	public void save () {
-		Main.drawDistance = (int)drawDistanceSlider.value;
-		Main.bgmVolume = bgmVolumeSlider.value;
-		Main.seVolume = seVolumeSlider.value;
-		Main.dragRotSpeed = Mathf.Round (dragRotSpeedSlider.value * 100f) / 100f;
-		Main.bloom = bloomToggle.isOn;
-		Main.saveSettings ();
+		Main.reflectSettings ();
 
 		if (Main.playingmap != null) {
 			//TODO マルチに対応させる必要がある
 			Main.playingmap.DestroyChunkEntities ();
 			Main.masterPlayer.playerEntity.reloadChunk ();
 		}
+	}
+
+	public void save () {
+		reflect ();
+		Main.saveSettings ();
 
 		show (false);
 	}
@@ -109,5 +109,6 @@ public class SettingPanel : BPPanel {
 		seVolumeSlider.value = Main.DEFAULT_SE_VOLUME;
 		dragRotSpeedSlider.value = Main.DEFAULT_DRAG_ROT_SPEED;
 		bloomToggle.isOn = Main.DEFAULT_BLOOM;
+		reflect ();
 	}
 }

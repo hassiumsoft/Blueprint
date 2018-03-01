@@ -127,6 +127,7 @@ public class Main : MonoBehaviour {
 		seVolume = PlayerPrefs.GetFloat (KEY_SE_VOLUME, DEFAULT_SE_VOLUME);
 		dragRotSpeed = PlayerPrefs.GetFloat (KEY_DRAG_ROT_SPEED, DEFAULT_DRAG_ROT_SPEED);
 		bloom = PlayerPrefs.GetInt (KEY_BLOOM, DEFAULT_BLOOM ? 1 : 0) == 1;
+		reflectSettings ();
 		saveSettings ();
 
 		Player.playerPrefab = playerPrefab;
@@ -205,12 +206,18 @@ public class Main : MonoBehaviour {
 		Process.Start (ssdir);
 	}
 
+	public static void reflectSettings () {
+		main.bgmSource.volume = bgmVolume;
+		main.seSource.volume = seVolume;
+		main.mainCamera.GetComponent<PostProcessingBehaviour> ().profile.bloom.enabled = bloom;
+	}
+
 	public static void saveSettings () {
 		PlayerPrefs.SetInt (KEY_DRAW_DISTANCE, drawDistance);
-		PlayerPrefs.SetFloat (KEY_BGM_VOLUME, main.bgmSource.volume = bgmVolume);
-		PlayerPrefs.SetFloat (KEY_SE_VOLUME, main.seSource.volume = seVolume);
+		PlayerPrefs.SetFloat (KEY_BGM_VOLUME, bgmVolume);
+		PlayerPrefs.SetFloat (KEY_SE_VOLUME, seVolume);
 		PlayerPrefs.SetFloat (KEY_DRAG_ROT_SPEED, dragRotSpeed);
-		PlayerPrefs.SetInt (KEY_BLOOM, (main.mainCamera.GetComponent<PostProcessingBehaviour> ().profile.bloom.enabled = bloom) ? 1 : 0);
+		PlayerPrefs.SetInt (KEY_BLOOM, bloom ? 1 : 0);
 	}
 
 	public static IEnumerator openMap (string mapname) {
