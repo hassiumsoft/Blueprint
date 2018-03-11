@@ -224,7 +224,6 @@ public class Main : MonoBehaviour {
 		if (playingmap != null) {
 			closeMap ();
 		}
-		BPCanvas.titlePanel.show (false);
 		BPCanvas.loadingMapPanel.show (true);
 
 		//一回だとフレーム等のズレによってTipsが表示されない
@@ -236,7 +235,7 @@ public class Main : MonoBehaviour {
 		if (map == null) {
 			//マップが対応していない
 			BPCanvas.loadingMapPanel.show (false);
-			BPCanvas.titlePanel.show (true);
+			BPCanvas.titlePanel.show (false);
 			BPCanvas.selectMapPanel.setOpenMap ();
 			BPCanvas.selectMapPanel.show (true);
 			BPCanvas.unsupportedMapPanel.show (true);

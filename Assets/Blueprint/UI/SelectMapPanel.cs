@@ -26,6 +26,7 @@ public class SelectMapPanel : BPPanel, ScrollController.Listener {
 		    !BPCanvas.unsupportedMapPanel.gameObject.activeInHierarchy &&
 		    !BPCanvas.deleteMapPanel.gameObject.activeInHierarchy) {
 			show (false);
+			BPCanvas.titlePanel.show (true);
 		}
 	}
 
