@@ -3567,7 +3567,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: f04f4730b4c58de4ca4953266f8bdc8e, type: 3}
   bgmSource: {fileID: 1589977583}
   seSource: {fileID: 1989953749}
-  mat: {fileID: 2100000, guid: 0386d05a97afaae48975eb991efa0373, type: 2}
+  mat: {fileID: 2100000, guid: ef8ada7dcfb296a4e92891d28191e772, type: 2}
   playerPrefab: {fileID: 114849202073087542, guid: bdaad59bb37a1c44b998e6a6b718347a,
     type: 2}
 --- !u!4 &575676624
