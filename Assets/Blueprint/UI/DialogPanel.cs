@@ -24,8 +24,8 @@ public class DialogPanel : BPPanel {
         how = "info";
         base.show(true);
         aboutoferror = errorabout;
-        Pause(5);
-        base.show(false);
+       // Pause(5);
+      //  base.show(false);
     }
 
     public void error(string errorabout)
@@ -35,8 +35,8 @@ public class DialogPanel : BPPanel {
         how = "error";
         base.show(true);
         aboutoferror = errorabout;
-        Pause(5);
-        base.show(false);
+      //  Pause(5);
+       // base.show(false);
     }
 
     public void stopped(string whystopped)
@@ -46,8 +46,8 @@ public class DialogPanel : BPPanel {
         how = "stopped";
         base.show(true);
         aboutoferror = whystopped;
-        Pause(5);
-        base.show(false);
+      //  Pause(5);
+       // base.show(false);
 
 
     }
@@ -71,7 +71,7 @@ public class DialogPanel : BPPanel {
             base.show(false);
 
         }*/
-        Pause(5);
+       // Pause(5);
         base.show(false);
     }
     IEnumerator Pause(int sec)
