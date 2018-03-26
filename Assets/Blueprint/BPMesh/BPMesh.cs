@@ -523,6 +523,10 @@ public class BPMesh {
 		mesh.vertices = verts;
 		mesh.triangles = tris;
 		mesh.RecalculateNormals ();
+		Vector2[] uv = new Vector2[verts.Length];
+		for (int b = 0; b < verts.Length; b++)
+			uv [b] = new Vector2 (verts [b].x, verts [b].z);
+		mesh.uv = uv;
 		return mesh;
 	}
 
@@ -626,6 +630,10 @@ public class BPMesh {
 		mesh.vertices = verts;
 		mesh.triangles = tris;
 		mesh.RecalculateNormals ();
+		Vector2[] uv = new Vector2[verts.Length];
+		for (int b = 0; b < verts.Length; b++)
+			uv [b] = new Vector2 (verts [b].x, verts [b].z);
+		mesh.uv = uv;
 		yield return mesh;
 	}
 
