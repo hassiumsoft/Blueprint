@@ -55,7 +55,7 @@ public class Main : MonoBehaviour {
 	public static bool pause { get; private set; } //ポーズ
 
 	private static float lasttick = 0; //時間を進ませた時の余り
-	private static float lasttick_few = 0; //頻繁に変更しないするための計算。この機能は一秒ごとに処理を行う。
+	private static float lasttick_few = 0; //頻繁に変更しないための計算。この機能は一秒ごとに処理を行う。
 	public Light sun; //太陽
 	public Camera mainCamera;
 	public AudioClip[] titleClips;
@@ -164,14 +164,10 @@ public class Main : MonoBehaviour {
 	}
 
 	void FixedUpdate () {
-		if (playingmap != null && !pause) {
+		if (playingmap != null) {
 			//時間を進ませる
 			lasttick += Time.deltaTime * 1000f;
 			lasttick_few += Time.deltaTime;
-			if (playingmap.fastForwarding) {
-				lasttick *= Map.FAST_FORWARDING_SPEED;
-				lasttick_few *= Map.FAST_FORWARDING_SPEED;
-			}
 
 			int ticks = Mathf.FloorToInt (lasttick);
 			lasttick -= ticks;
@@ -242,6 +238,7 @@ public class Main : MonoBehaviour {
 		} else {
 			playingmap = map;
 			pause = false;
+			Time.timeScale = playingmap.fastForwarding ? Map.FAST_FORWARDING_SPEED : 1;
 			lasttick = 0;
 			lasttick_few = 0;
 			main.reloadLighting ();
@@ -277,9 +274,18 @@ public class Main : MonoBehaviour {
 	}
 
 	public static void setPause (bool pause) {
-		Main.pause = pause;
+		if (Main.pause = pause)
+			Time.timeScale = 0;
+		else
+			Time.timeScale = playingmap.fastForwarding ? Map.FAST_FORWARDING_SPEED : 1;
+		
 		BPCanvas.playingPanel.show (!pause);
 		BPCanvas.pausePanel.show (pause);
+	}
+
+	public static void setFastForwarding (bool fastForwarding) {
+		playingmap.setFastForwarding (fastForwarding);
+		Time.timeScale = playingmap.fastForwarding ? Map.FAST_FORWARDING_SPEED : 1;
 	}
 
 	public void reloadLighting () {

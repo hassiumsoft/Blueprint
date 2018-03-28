@@ -12,9 +12,10 @@ public class Map : ISerializable {
 	public const string KEY_TIME = "TIME";
 	public const string KEY_FAST_FORWARDING = "FASTFORWARDING";
 	public const float ABYSS_HEIGHT = -100f;
-	public const float FAST_FORWARDING_SPEED = 72f; //早送り中の速度。実時間20分でゲームが1日進む
+	public const float FAST_FORWARDING_SPEED = 10f; //早送りの速度
 
 	//・複数のマップを同時に読み込んではいけない。
+	//TODO 時間に年月日を追加
 
 	public string mapname { get; }
 

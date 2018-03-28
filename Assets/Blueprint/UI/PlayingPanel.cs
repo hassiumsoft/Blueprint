@@ -20,7 +20,7 @@ public class PlayingPanel : BPPanel {
 	}
 
 	public void FastButton () {
-		Main.playingmap.setFastForwarding (!Main.playingmap.fastForwarding);
+		Main.setFastForwarding (!Main.playingmap.fastForwarding);
 		reloadFastForwarding ();
 	}
 }
