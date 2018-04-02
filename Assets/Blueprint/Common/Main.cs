@@ -51,7 +51,7 @@ public class Main : MonoBehaviour {
 	public static float dragRotSpeed = DEFAULT_DRAG_ROT_SPEED;
 	public static bool bloom = DEFAULT_BLOOM;
 
-	public static bool _pause = false;
+	private static bool _pause = false;
 	public static bool pause { get; private set; } //ポーズ
 
 	private static float lasttick = 0; //時間を進ませた時の余り
