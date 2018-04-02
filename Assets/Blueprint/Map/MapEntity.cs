@@ -2,7 +2,7 @@
 
 public class MapEntity : MonoBehaviour {
 	public virtual MapObject obj { get; protected set; }
-	bool initialized = false;
+	public bool initialized = false;
 
 	void Start () {
 		obj.reloadEntity ();
