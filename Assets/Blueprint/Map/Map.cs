@@ -17,11 +17,11 @@ public class Map : ISerializable {
 	//・複数のマップを同時に読み込んではいけない。
 	//TODO 時間に年月日を追加
 
-	public string mapname { get; }
+	public string mapname { get; private set; }
 
 	//TODO マップ全体を読み込まなくてもファイルヘッダにマップの基本情報を書き込む。
 	//マップの基本情報にはマップのチャンクやプレイヤーデータを除いたマップの作成日時などがある。
-	public DateTime created { get; }
+	public DateTime created { get; private set; }
 	public List<Chunk> chunks { get; private set; } //TODO 後にチャンク呼び出しが遅くなる可能性があるためHashMapなどで高速化する必要がある
 	public List<Player> players { get; private set; }
 	public long time { get; private set; } //マップの時間。0時から始まり1tickが1msである。

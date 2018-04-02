@@ -41,8 +41,8 @@ public class Chunk : ISerializable {
 				_map = value;
 		}
 	}
-	public int x { get; }
-	public int z { get; }
+	public int x { get; private set; }
+	public int z { get; private set; }
 	public bool generated { get; private set; } //地形データなどが生成されているかどうか。実体ではないので注意。
 	//TODO アンロード中に時間が経つと進んだ分の時間が経つ。
 	public long lasttime { get; private set; } //最後に読み込まれた時のマップ時間。読み込まれていない状態ではチャンクの処理は行われない。
