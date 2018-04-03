@@ -38,7 +38,6 @@ public class Main : MonoBehaviour {
 	public static string ssdir { get; private set; }
 	public static int min_fps = 15;
 	public static float min_reflectionIntensity = 1f / 32;
-	public static EventSystem eventsys;
 
 	private static bool firstStart = false;
 	public static bool isFirstStart {
@@ -119,7 +118,6 @@ public class Main : MonoBehaviour {
 		print ("firstStartTimes: " + a);*/
 
 		ssdir = Path.Combine (Application.persistentDataPath, "screenshots");
-		eventsys = EventSystem.current;
 
 		//初期設定を行っているかどうか
 		isSetupped = PlayerPrefs.GetInt(KEY_SETUPPED, 0) == 1;
@@ -245,7 +243,7 @@ public class Main : MonoBehaviour {
 			lasttick = 0;
 			lasttick_few = 0;
 			main.reloadLighting ();
-			eventsys.sendNavigationEvents = false;
+			EventSystem.current.sendNavigationEvents = false;
 
 			int pid = playingmap.getPlayer ("master");//TODO 仮
 			if (pid == -1) {
@@ -269,7 +267,7 @@ public class Main : MonoBehaviour {
 			playingmap.DestroyAll ();
 			playingmap = null;
 			main.mainCamera.GetComponent<PostProcessingBehaviour> ().enabled = false;
-			eventsys.sendNavigationEvents = true;
+			EventSystem.current.sendNavigationEvents = true;
 		}
 	}
 
@@ -286,7 +284,7 @@ public class Main : MonoBehaviour {
 		
 		BPCanvas.playingPanel.show (!pause);
 		BPCanvas.pausePanel.show (pause);
-		eventsys.sendNavigationEvents = pause;
+		EventSystem.current.sendNavigationEvents = pause;
 	}
 
 	public static void setFastForwarding (bool fastForwarding) {
