@@ -179,6 +179,8 @@ public class Map : ISerializable {
 	//時間が経過するメソッド。ticksには経過時間を指定。
 	public void TimePasses (long ticks) {
 		time += ticks;
+		foreach (ChunkEntity chunk in GameObject.FindObjectsOfType<ChunkEntity> ())
+			chunk.chunk.TimePasses (time);
 	}
 
 	public void setFastForwarding (bool fastForwarding) {

@@ -314,7 +314,7 @@ public class Chunk : ISerializable {
 		
 		float px = x * size + UnityEngine.Random.Range (0, size);
 		float pz = z * size + UnityEngine.Random.Range (0, size);
-		map.addObject (new TreeObject (map, new Vector3 (px, map.getTerrainHeight (px, pz), pz), Quaternion.Euler (new Vector3 (0, UnityEngine.Random.Range (0f, 360f)))));
+		map.addObject (new TreeObject (map, new Vector3 (px, map.getTerrainHeight (px, pz), pz), Quaternion.Euler (new Vector3 (0, UnityEngine.Random.Range (0f, 360f))), TreeType.Quercus_myrsinifolia));
 	}
 
 	//時間が経過するメソッド。MapやMapObjectと違い経過時間ではなくlong型で新しい時間を指定する。

@@ -8,26 +8,14 @@ public class TreeObject : PlantObject {
 	public const string KEY_TYPE = "TYPE";
 	public const string KEY_MESH = "MESH";
 
-	//TODO
-	//幹
-	//枝
-	//葉
-	//実
+	public const int AUTO_GENERATE_INTERVAL = 3000;
 
-	//葉緑体
-	//水分
-	//デンプン
-	//光合成
-
-	//肥料分
-
-	//TODO 二酸化炭素の検出
-
-	public bool generated { get; private set; }
+	public int modeling_after { get; private set; }
 	public TreeType type;
 	public Mesh mesh;
 
-	public TreeObject (Map map, Vector3 pos, Quaternion rot) : base (map, pos, rot) {
+	public TreeObject (Map map, Vector3 pos, Quaternion rot, TreeType type, float age = 0) : base (map, pos, rot, age) {
+		this.type = type;
 	}
 
 	protected TreeObject (SerializationInfo info, StreamingContext context) : base (info, context) {
@@ -45,10 +33,9 @@ public class TreeObject : PlantObject {
 	}
 
 	public override void generate () {
-		if (!generated) {
-			type = TreeType.Shirakashi;
+		if (modeling_after == 0) {
 			mesh = BPMesh.generateTree (new TreeInfo (type, age));
-			generated = true;
+			modeling_after = AUTO_GENERATE_INTERVAL;
 		}
 
 		if (entity == null)
@@ -78,5 +65,13 @@ public class TreeObject : PlantObject {
 		meshfilter.sharedMesh.RecalculateNormals ();
 
 		base.reloadEntity ();
+	}
+
+	public override void TimePasses (long ticks) {
+		base.TimePasses (ticks);
+		if ((modeling_after -= (int)ticks) < 0) {
+			modeling_after = 0;
+			generate ();
+		}
 	}
 }

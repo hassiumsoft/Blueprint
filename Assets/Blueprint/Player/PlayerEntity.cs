@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerEntity : MapEntity {
 	public static Vector3 CAMERA_POS = new Vector3 (0f, 2f, -2.5f);
@@ -31,13 +32,17 @@ public class PlayerEntity : MapEntity {
 		}
 
 		if (!BPCanvas.pausePanel.isShowing ()) {
-			if (Input.GetMouseButtonDown (0)) {
-				//TODO クリックすると目線の先に木を置くテスト用機能
-				Vector3 pos = p_camera.ViewportToWorldPoint (Input.mousePosition);
+			if (Input.GetMouseButtonUp (0)) {
+				if (EventSystem.current.IsPointerOverGameObject ())
+					return;
 
-				TreeObject mapobj = new TreeObject (obj.chunk.map, pos, transform.rotation);
-				obj.chunk.map.addObject (mapobj);
-				mapobj.generate ();
+				//TODO クリックすると目線の先に木を置くテスト用機能
+				RaycastHit hit;
+				if (Physics.Raycast (p_camera.ScreenPointToRay (Input.mousePosition), out hit, 10)) {
+					TreeObject mapobj = new TreeObject (obj.chunk.map, hit.point, transform.rotation, TreeType.Quercus_myrsinifolia);
+					obj.chunk.map.addObject (mapobj);
+					mapobj.generate ();
+				}
 			}
 		}
 		if (transform.position.y < Map.ABYSS_HEIGHT) {

@@ -754,7 +754,7 @@ public class BPMesh {
 
 	//TODO 切り出し
 
-	//TODO 樹木を生成
+	//樹木を生成
 	public static Mesh generateTree (TreeInfo info) {
 		float radius = info.getRadius ();
 		float height = info.getHeight ();
