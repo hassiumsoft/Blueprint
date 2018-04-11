@@ -39,6 +39,11 @@ public class PlayerEntity : MapEntity {
 				obj.chunk.map.addObject (mapobj);
 				mapobj.generate ();
 			}
+            if (Input.GetMouseButtonDown(1))
+            {
+                //建築メニュー（テスト用）
+
+            }
 		}
 		if (transform.position.y < Map.ABYSS_HEIGHT) {
 			print (DateTime.Now + " プレイヤー\"" + player.name + "\"が奈落に落ちました");
