@@ -12,6 +12,7 @@ public class BPCanvas : MonoBehaviour {
 	public static DeleteMapPanel deleteMapPanel;
 	public static DialogPanel dialogPanel;
     public static QuestionPanel questionPanel;
+    public static BuildingMenuPanel buildingmenupanel;
 
 	void Awake () {
 		titlePanel = GetComponentInChildren<TitlePanel> (true);
@@ -24,5 +25,6 @@ public class BPCanvas : MonoBehaviour {
 		unsupportedMapPanel = GetComponentInChildren<UnsupportedMapPanel> (true);
 		deleteMapPanel = GetComponentInChildren<DeleteMapPanel> (true);
 		dialogPanel = GetComponentInChildren<DialogPanel> (true);
+        buildingmenupanel = GetComponentInChildren<BuildingMenuPanel>(true);
 	}
 }
